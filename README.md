@@ -14,7 +14,7 @@ to ensure that updating is non-breaking.
 Use deno [`install`](https://deno.land/std/manual.md#installing-executable-scripts) command:
 
 ```sh
-deno install -A udd https://raw.githubusercontent.com/hayd/deno-udd/0.0.1/main.ts
+deno install -A udd https://raw.githubusercontent.com/hayd/deno-udd/0.0.2/main.ts
 ```
 _You may need to include the deno bin directory in your PATH._
 
