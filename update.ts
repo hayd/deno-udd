@@ -1,4 +1,4 @@
-import { decode, encode } from "./deps.ts";
+import { decode, encode, colors } from "./deps.ts";
 import { importUrls } from "./search.ts";
 import { versioned, Versioned } from "./versioned.ts";
 
@@ -47,8 +47,14 @@ export class Update {
   ): Promise<void> {
     // now we look up the available versions
     const versions = await url.all();
-    console.log("current version:", url.current());
-    console.log("available versions:", versions);
+
+    console.log(colors.bold(url.url));
+    if (url.current() === versions[0]) {
+      // already at latest version, skip!
+      console.log("  Using latest:", url.url);
+      console.log();
+      return;
+    }
 
     // TODO: options: try latest, semver compat, or input
     // pick a new version (should be in for loop?)
@@ -56,10 +62,12 @@ export class Update {
 
     // for now, let's pick the most recent!
     const newVersion = versions[0];
-    if (url.current() === newVersion) {
-      return;
-    }
+
+    console.log("  Current version:", url.current());
+    console.log("  Available versions:", versions.join(","));
+
     const fails: boolean = await this.updateIfTestPasses(url, newVersion);
+    console.log();
   }
 
   async updateIfTestPasses(
@@ -67,16 +75,16 @@ export class Update {
     newVersion: string
   ): Promise<boolean> {
     const newUrl = url.at(newVersion);
-    console.log("Updating to", newUrl.url);
+    console.log("  Updating to", newUrl.url);
     await this.replace(url, newUrl);
 
-    console.log("Running tests...");
+    console.log(". Running tests...");
     if (await this.test()) {
-      console.log("Test failed, reverting.");
+      console.log("  Test failed, reverting.");
       await this.replace(newUrl, url);
       return true;
     } else {
-      console.log("Test passed.");
+      console.log("  Test passed.");
       return false;
     }
   }

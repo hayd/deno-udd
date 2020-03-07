@@ -1,15 +1,9 @@
 export function versioned(url: string): Versioned | undefined {
-  if (DENO_LAND.test(url)) {
-    return new DenoLand(url) as Versioned;
-  }
-  if (DENO_STD.test(url)) {
-    return new DenoStd(url) as Versioned;
-  }
-  if (UNPKG.test(url)) {
-    return new Unpkg(url) as Versioned;
-  }
-  if (DENOPKG.test(url)) {
-    return new Denopkg(url) as Versioned;
+  for (const Impl of IMPLS) {
+    const v = new Impl(url) as Versioned;
+    if (v.regexp.test(url)) {
+      return v;
+    }
   }
 }
 
@@ -21,6 +15,8 @@ export interface Versioned {
   at(version: string): Versioned;
   // current version of url
   current: () => string;
+  // is url valid for this Versioned
+  regexp: RegExp;
 }
 
 function defaultAt(that: Versioned, version: string): string {
@@ -51,10 +47,8 @@ async function githubReleases(owner: string, repo: string): Promise<string[]> {
   return [...m].map(x => x[1]).slice(1);
 }
 
-let denoLandJson: any;
+let denoLandDB: any;
 
-// FIXME use the full url then we can export this in search...
-const DENO_LAND = /https?:\/\/deno.land\/x\/[^\/\"\']*?\@[^\'\"]*/;
 class DenoLand implements Versioned {
   url: string;
 
@@ -67,21 +61,21 @@ class DenoLand implements Versioned {
   }
 
   async all(): Promise<string[]> {
-    if (!denoLandJson) {
-      const jsonUrl =
+    if (!denoLandDB) {
+      const dbUrl =
         "https://raw.githubusercontent.com/denoland/deno_website2/master/src/database.json";
-      denoLandJson = await (await fetch(jsonUrl)).json();
+      denoLandDB = await (await fetch(dbUrl)).json();
     }
     let res: any;
     try {
-      res = denoLandJson[this.name()];
+      res = denoLandDB[this.name()];
     } catch {
       throw new Error(`${this.name()} not found in deno land json`);
     }
 
-    const { typ, owner, repo } = res;
-    if (typ === "github") {
-      throw new Error(`${this.name()} has unsupported type ${typ}`);
+    const { type, owner, repo } = res;
+    if (type !== "github") {
+      throw new Error(`${this.name()} has unsupported type ${type}`);
     }
 
     return await githubReleases(owner, repo);
@@ -95,9 +89,10 @@ class DenoLand implements Versioned {
   current(): string {
     return defaultCurrent(this);
   }
+
+  regexp: RegExp = /https?:\/\/deno.land\/x\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-const DENO_STD = /https?:\/\/deno.land\/std\@[^\'\"]*/;
 class DenoStd implements Versioned {
   url: string;
 
@@ -117,9 +112,10 @@ class DenoStd implements Versioned {
   current(): string {
     return defaultCurrent(this);
   }
+
+  regexp: RegExp = /https?:\/\/deno.land\/std\@[^\'\"]*/;
 }
 
-const UNPKG = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
 class Unpkg implements Versioned {
   url: string;
 
@@ -135,8 +131,9 @@ class Unpkg implements Versioned {
     const page = await fetch(`https://unpkg.com/browse/${this.name()}/`);
     const text = await page.text();
     // naively, we grab all the titles, except the first which is the page titleL
-    const m = text.matchAll(/\<option value\=\"(.*?)\"\>/g);
-    return [...m].map(x => x[1]);
+    const m = [...text.matchAll(/\<option value\=\"(.*?)\"\>/g)];
+    m.reverse();
+    return m.map(x => x[1]);
   }
 
   at(version: string): Versioned {
@@ -147,9 +144,10 @@ class Unpkg implements Versioned {
   current(): string {
     return defaultCurrent(this);
   }
+
+  regexp: RegExp = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-const DENOPKG = /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 class Denopkg implements Versioned {
   url: string;
 
@@ -177,8 +175,11 @@ class Denopkg implements Versioned {
   current(): string {
     return defaultCurrent(this);
   }
+
+  regexp: RegExp =
+    /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 // TODO Pika
 
-export const SUPPORTED_URLS = [DENO_STD, DENO_LAND, UNPKG, DENOPKG];
+export const IMPLS = [DenoStd, DenoLand, Unpkg, Denopkg];

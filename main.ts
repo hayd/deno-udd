@@ -7,7 +7,9 @@ import { update } from "./update.ts";
 function testsThunk(tests: string[]): () => Promise<boolean> {
   return async () => {
     for (const t of tests) {
-      const p = Deno.run({ args: `${Deno.execPath()} ${t}`.split(" ") });
+      // FIXME is there a better way to split / pass arrays?
+      // This fails if you wanted to pass e.g. --foo="a b"
+      const p = Deno.run({ args: t.split(" ") });
       if (!(await p.status()).success) {
         return true;
       }

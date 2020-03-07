@@ -1,4 +1,4 @@
-import { SUPPORTED_URLS } from "./versioned.ts";
+import { IMPLS } from "./versioned.ts";
 
 // ideally we'd do some proper parsing here (is there a deno api here? swc? or deno info)
 
@@ -14,5 +14,6 @@ export function importUrls(tsContent: string): string[] {
   // return tsContent.match(
   //   /https?\:\/\/deno\.land\/(std|x\/[^\/\"\']*?)\@[^\'\"]*/g
   // ) || [];
-  return SUPPORTED_URLS.flatMap(re => tsContent.match(re) || []);
+  const rs: RegExp[] = IMPLS.map(Impl => new Impl("").regexp);
+  return rs.flatMap(regexp => tsContent.match(regexp) || []);
 }
