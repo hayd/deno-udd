@@ -39,12 +39,20 @@ function defaultName(that: Versioned): string {
   return n[1];
 }
 
+// There must be a better way...
+const GR_CACHE: Map<string, string[]> = new Map<string, string[]>();
 async function githubReleases(owner: string, repo: string): Promise<string[]> {
+  const cacheKey = `${owner}/${repo}`
+  if (GR_CACHE.has(cacheKey)) {
+    return GR_CACHE.get(cacheKey)!
+  }
   const page = await fetch(`http://github.com/${owner}/${repo}/releases.atom`);
   const text = await page.text();
   // naively, we grab all the titles, except the first which is the page titleL
   const m = text.matchAll(/<title>(.*?)\<\/title\>/g);
-  return [...m].map(x => x[1]).slice(1);
+  const versions = [...m].map(x => x[1]).slice(1);
+  GR_CACHE.set(cacheKey, versions)
+  return versions;
 }
 
 let denoLandDB: any;

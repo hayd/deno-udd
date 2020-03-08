@@ -29,14 +29,17 @@ function testsThunk(tests: string[]): () => Promise<boolean> {
 }
 
 function help() {
-  console.log(`usage: udd [-h] [--dry-run] [--test TEST] [files [files ...]]
+  console.log(`usage: udd [-h] [--dry-run] [--test TEST] file [file ...]
 
 udd: Update Deno Dependencies
 
-Options:
--h, --help \tshow this help text
---dry-run  \ttest what dependencies can be updated
---test TEST\tcommand to run after each dependency update e.g. "deno test"`);
+Positional arguments:
+  file      \tfiles to update dependencies
+
+Optional arguments:
+ -h, --help \tshow this help text
+ --dry-run  \ttest what dependencies can be updated
+ --test TEST\tcommand to run after each dependency update e.g. "deno test"`);
 }
 
 export async function main(args: string[]) {
@@ -47,6 +50,11 @@ export async function main(args: string[]) {
   }
 
   const depFiles: string[] = a._;
+
+  if (depFiles.length === 0) {
+    help();
+    Deno.exit(1);
+  }
 
   let tests: string[] = [];
   if (a.test instanceof Array) {
