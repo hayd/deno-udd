@@ -14,6 +14,8 @@ export function importUrls(tsContent: string): string[] {
   // return tsContent.match(
   //   /https?\:\/\/deno\.land\/(std|x\/[^\/\"\']*?)\@[^\'\"]*/g
   // ) || [];
-  const rs: RegExp[] = IMPLS.map(Impl => new Impl("").regexp);
+  const rs: RegExp[] = IMPLS.map(Impl => new Impl("").regexp).map(re =>
+    new RegExp(re, "g")
+  );
   return rs.flatMap(regexp => tsContent.match(regexp) || []);
 }

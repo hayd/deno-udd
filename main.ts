@@ -76,7 +76,8 @@ export async function main(args: string[]) {
   }
 
   const results: UpdateResult[] = [];
-  for (const fn of depFiles) {
+  for (const [i, fn] of depFiles.entries()) {
+    if (i !== 0) console.log();
     console.log(colors.yellow(fn));
     results.push(...await update(fn, thunk, options));
   }
