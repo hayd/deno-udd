@@ -1,21 +1,22 @@
 import { encode } from "./deps.ts";
 const { noColor } = Deno;
 
-const LINE_START = noColor ? "" : "\u001b[999D";
+const START = noColor ? "" : "\u001b[999D";
+const END = noColor ? "\n" : "";
 
 export class Progress {
   n: number;
-  r: Deno.Writer;
+  w: Deno.Writer;
   step: number = 0;
 
-  constructor(n: number, r: Deno.Writer = Deno.stdout) {
+  constructor(n: number, w: Deno.Writer = Deno.stdout) {
     this.n = n;
-    this.r = r;
+    this.w = w;
   }
   async log(msg: string) {
     // we assume that msg doesn't contain \n
-    const line = `${LINE_START}[${this.step + 1}/${this.n}] ${msg}`;
+    const line = `${START}[${this.step + 1}/${this.n}] ${msg}${END}`;
     const b = encode(line);
-    await this.r.write(b);
+    await this.w.write(b);
   }
 }

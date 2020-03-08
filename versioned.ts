@@ -39,19 +39,26 @@ function defaultName(that: Versioned): string {
   return n[1];
 }
 
-// There must be a better way...
-const GR_CACHE: Map<string, string[]> = new Map<string, string[]>();
-async function githubReleases(owner: string, repo: string): Promise<string[]> {
+// export for testing purposes
+export const GR_CACHE: Map<string, string[]> = new Map<string, string[]>();
+async function githubReleases(
+  owner: string,
+  repo: string,
+  cache: Map<string, string[]> = GR_CACHE
+): Promise<string[]> {
   const cacheKey = `${owner}/${repo}`;
-  if (GR_CACHE.has(cacheKey)) {
-    return GR_CACHE.get(cacheKey)!;
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey)!;
   }
   const page = await fetch(`http://github.com/${owner}/${repo}/releases.atom`);
   const text = await page.text();
   // naively, we grab all the titles, except the first which is the page titleL
-  const m = text.matchAll(/<title>(.*?)\<\/title\>/g);
-  const versions = [...m].map(x => x[1]).slice(1);
-  GR_CACHE.set(cacheKey, versions);
+  const versions = [
+    ...text.matchAll(
+      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g
+    )
+  ].map(x => x[1]);
+  cache.set(cacheKey, versions);
   return versions;
 }
 
