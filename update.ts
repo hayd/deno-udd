@@ -1,4 +1,5 @@
 import { decode, encode, colors } from "./deps.ts";
+import { Progress } from "./progress.ts";
 import { importUrls } from "./search.ts";
 import { versioned, Versioned } from "./versioned.ts";
 
@@ -6,54 +7,72 @@ import { versioned, Versioned } from "./versioned.ts";
 
 export async function update(
   filename: string,
-  test: () => Promise<boolean>
-): Promise<void> {
-  const u = new Update(filename, test);
-  await u.update();
+  test: () => Promise<boolean>,
+  options: UpdateOptions
+): Promise<UpdateResult[]> {
+  const u = new Update(filename, test, options);
+  return await u.update();
+}
+
+export interface UpdateOptions {
+  dryRun: boolean;
+}
+
+export interface UpdateResult {
+  initUrl: string;
+  initVersion: string;
+  newVersion?: string;
+  success?: boolean;
 }
 
 export class Update {
   private filename: string;
   private test: () => Promise<boolean>;
+  private options: UpdateOptions;
+  private progress: Progress;
 
-  constructor(filename: string, test: () => Promise<boolean>) {
+  constructor(
+    filename: string,
+    test: () => Promise<boolean>,
+    options: UpdateOptions
+  ) {
     this.filename = filename;
     this.test = test;
+    this.options = options;
+    this.progress = new Progress(1);
   }
 
-  async update(): Promise<void> {
-    // first we test the thunk works prior to updatng...
-    if (await this.test()) {
-      console.error("Tests failed prior to update");
-      Deno.exit(1);
-    }
-
-    const content: string = await this.content(); // decode(await Deno.readFile(filename));
+  async update(): Promise<UpdateResult[]> {
+    const content: string = await this.content();
 
     const urls: string[] = importUrls(content);
+    this.progress.n = urls.length;
 
     // from a url we need to extract the current version
-    for (const u of urls) {
+    const results: UpdateResult[] = [];
+    for (const [i, u] of urls.entries()) {
+      this.progress.step = i;
       const v = versioned(u);
       if (v !== undefined) {
-        await this.updateOne(v!);
+        // this.progress.log(`Updating ${u}`)
+        results.push(await this.updateOne(v!));
       }
     }
-    // TODO count the imports that were updated
+    return results;
   }
 
   async updateOne(
     url: Versioned
-  ): Promise<void> {
+  ): Promise<UpdateResult> {
     // now we look up the available versions
     const versions = await url.all();
 
-    console.log(colors.bold(url.url));
+    // console.log(colors.bold(url.url));
     if (url.current() === versions[0]) {
       // already at latest version, skip!
-      console.log("  Using latest:", url.url);
-      console.log();
-      return;
+      await this.progress.log(`Using latest: ${url.url}`);
+      // console.log();
+      return { initUrl: url.url, initVersion: url.current() };
     }
 
     // TODO: options: try latest, semver compat, or input
@@ -63,11 +82,18 @@ export class Update {
     // for now, let's pick the most recent!
     const newVersion = versions[0];
 
-    console.log("  Current version:", url.current());
-    console.log("  Available versions:", versions.join(","));
+    // console.log("  Current version:", url.current());
+    // console.log("  Available versions:", versions.join(","));
 
+    await this.progress.log(`Updating: ${url.url} -> ${newVersion}`);
     const fails: boolean = await this.updateIfTestPasses(url, newVersion);
-    console.log();
+    return {
+      initUrl: url.url,
+      initVersion: url.current(),
+      newVersion,
+      success: !fails
+    };
+    // console.log();
   }
 
   async updateIfTestPasses(
@@ -75,18 +101,14 @@ export class Update {
     newVersion: string
   ): Promise<boolean> {
     const newUrl = url.at(newVersion);
-    console.log("  Updating to", newUrl.url);
+    // console.log("  Updating to", newUrl.url);
     await this.replace(url, newUrl);
 
-    console.log(". Running tests...");
-    if (await this.test()) {
-      console.log("  Test failed, reverting.");
+    const fails = await this.test();
+    if (fails || this.options.dryRun) {
       await this.replace(newUrl, url);
-      return true;
-    } else {
-      console.log("  Test passed.");
-      return false;
     }
+    return fails;
   }
 
   async content(): Promise<string> {

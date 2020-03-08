@@ -1,16 +1,26 @@
 // deno --allow-run main.ts deps.ts --test="fetch main.ts" --test=test
 // perhaps --compile instead?
 
-import { parseArgs } from "./deps.ts";
-import { update } from "./update.ts";
+import { colors, parseArgs } from "./deps.ts";
+import { UpdateOptions, UpdateResult, update } from "./update.ts";
+
+// TODO verbosity e.g. show all versions available
+// TODO quiet show little
+// export let verbosity = 1;
 
 function testsThunk(tests: string[]): () => Promise<boolean> {
   return async () => {
     for (const t of tests) {
       // FIXME is there a better way to split / pass arrays?
       // This fails if you wanted to pass e.g. --foo="a b"
-      const p = Deno.run({ args: t.split(" ") });
+      const p = Deno.run({
+        args: t.split(" "),
+        stdout: "piped",
+        stderr: "piped"
+      });
       if (!(await p.status()).success) {
+        console.log();
+        await Deno.stdout.write(await p.stderrOutput());
         return true;
       }
     }
@@ -18,11 +28,25 @@ function testsThunk(tests: string[]): () => Promise<boolean> {
   };
 }
 
+function help() {
+  console.log(`usage: udd [-h] [--dry-run] [--test TEST] [files [files ...]]
+
+udd: Update Deno Dependencies
+
+Options:
+-h, --help \tshow this help text
+--dry-run  \ttest what dependencies can be updated
+--test TEST\tcommand to run after each dependency update e.g. "deno test"`);
+}
+
 export async function main(args: string[]) {
   const a = parseArgs(args);
 
+  if (a.h || a.help) {
+    return help();
+  }
+
   const depFiles: string[] = a._;
-  // TODO verbosity/quiet argument?
 
   let tests: string[] = [];
   if (a.test instanceof Array) {
@@ -33,8 +57,55 @@ export async function main(args: string[]) {
 
   const thunk = testsThunk(tests);
 
+  // TODO verbosity/quiet argument?
+  const options: UpdateOptions = { dryRun: a["dry-run"] };
+
+  if (await thunk()) {
+    console.error(
+      colors.red("Tests failed prior to updating any dependencies")
+    );
+    Deno.exit(1);
+  }
+
+  const results: UpdateResult[] = [];
   for (const fn of depFiles) {
-    await update(fn, thunk);
+    console.log(colors.yellow(fn));
+    results.push(...await update(fn, thunk, options));
+  }
+
+  // TODO perhaps a table would be a nicer output?
+
+  const alreadyLatest = results.filter(x => x.newVersion === undefined);
+  if (alreadyLatest.length > 0) {
+    console.log(colors.bold("\nAlready latest version:"));
+    for (const a of alreadyLatest) {
+      console.log(colors.dim(a.initUrl), "->", a.initVersion);
+    }
+  }
+
+  const successes = results.filter(x => x.success === true);
+  if (successes.length > 0) {
+    console.log(
+      colors.bold(
+        options.dryRun ? "\nAble to update:" : "\nSuccessfully updated:"
+      )
+    );
+    for (const s of successes) {
+      console.log(colors.green(s.initUrl), s.initVersion, "->", s.newVersion);
+    }
+  }
+
+  const failures = results.filter(x => x.success === false);
+  if (failures.length > 0) {
+    console.log(
+      colors.bold(
+        options.dryRun ? "\nUnable to update:" : "\nFailed to update:"
+      )
+    );
+    for (const f of failures) {
+      console.log(colors.red(f.initUrl), f.initVersion, "->", f.newVersion);
+    }
+    Deno.exit(1);
   }
 }
 
