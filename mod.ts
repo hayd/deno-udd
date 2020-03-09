@@ -1,21 +1,26 @@
 import { decode, encode, colors } from "./deps.ts";
-import { Progress } from "./progress.ts";
+import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
-import { REGISTRIES, registry, RegistryUrl } from "./registry.ts";
+import { REGISTRIES, RegistryUrl, lookup } from "./registry.ts";
 
 // FIXME we should catch ctrl-c etc. and write back the original deps.ts
 
 export async function udd(
   filename: string,
-  test: () => Promise<void>,
   options: UddOptions
 ): Promise<UddResult[]> {
-  const u = new Udd(filename, test, options);
+  const u = new Udd(filename, options);
   return await u.run();
 }
 
 export interface UddOptions {
-  dryRun: boolean;
+  // don't permanently edit files
+  dryRun?: boolean;
+  // don't print progress messages
+  quiet?: boolean;
+  // if this function errors then the update is reverted
+  test?: () => Promise<void>;
+
   _registries?: any[];
 }
 
@@ -35,14 +40,13 @@ export class Udd {
 
   constructor(
     filename: string,
-    test: () => Promise<void>,
     options: UddOptions
   ) {
     this.filename = filename;
-    this.test = test;
     this.options = options;
     this.registries = options._registries || REGISTRIES;
-    this.progress = new Progress(1);
+    this.test = options.test || (async () => undefined);
+    this.progress = options.quiet ? new SilentProgress(1) : new Progress(1);
   }
 
   async content(): Promise<string> {
@@ -59,7 +63,7 @@ export class Udd {
     const results: UddResult[] = [];
     for (const [i, u] of urls.entries()) {
       this.progress.step = i;
-      const v = registry(u, this.registries);
+      const v = lookup(u, this.registries);
       if (v !== undefined) {
         results.push(await this.update(v!));
       }

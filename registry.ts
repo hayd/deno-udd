@@ -1,5 +1,5 @@
 // FIXME don't use any[]
-export function registry(url: string, registries: any[]): RegistryUrl
+export function lookup(url: string, registries: any[]): RegistryUrl
   | undefined
 {
   for (const R of registries) {
@@ -22,11 +22,11 @@ export interface RegistryUrl {
   regexp: RegExp;
 }
 
-function defaultAt(that: RegistryUrl, version: string): string {
+export function defaultAt(that: RegistryUrl, version: string): string {
   return that.url.replace(/\@([^\/]*?)\//, `@${version}/`);
 }
 
-function defaultVersion(that: RegistryUrl): string {
+export function defaultVersion(that: RegistryUrl): string {
   const v = that.url.match(/\@([^\/]*?)\//);
   if (v === null) {
     throw Error(`Unable to find version in ${that.url}`);
@@ -34,7 +34,7 @@ function defaultVersion(that: RegistryUrl): string {
   return v[1];
 }
 
-function defaultName(that: RegistryUrl): string {
+export function defaultName(that: RegistryUrl): string {
   const n = that.url.match(/([^\/\"\']*?)\@[^\'\"]*/);
   if (n === null) {
     throw new Error(`Package name not found in ${that.url}`);
@@ -69,7 +69,7 @@ async function githubReleases(
 
 let denoLandDB: any;
 
-class DenoLand implements RegistryUrl {
+export class DenoLand implements RegistryUrl {
   url: string;
 
   constructor(url: string) {
@@ -113,7 +113,7 @@ class DenoLand implements RegistryUrl {
   regexp: RegExp = /https?:\/\/deno.land\/x\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-class DenoStd implements RegistryUrl {
+export class DenoStd implements RegistryUrl {
   url: string;
 
   constructor(url: string) {
@@ -136,7 +136,7 @@ class DenoStd implements RegistryUrl {
   regexp: RegExp = /https?:\/\/deno.land\/std\@[^\'\"]*/;
 }
 
-class Unpkg implements RegistryUrl {
+export class Unpkg implements RegistryUrl {
   url: string;
 
   name(): string {
@@ -168,7 +168,7 @@ class Unpkg implements RegistryUrl {
   regexp: RegExp = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-class Denopkg implements RegistryUrl {
+export class Denopkg implements RegistryUrl {
   url: string;
 
   owner(): string {

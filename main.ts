@@ -43,7 +43,7 @@ Optional arguments:
  --test TEST\tcommand to run after each dependency update e.g. "deno test"`);
 }
 
-export async function main(args: string[]) {
+async function main(args: string[]) {
   const a = parseArgs(args);
 
   if (a.h || a.help) {
@@ -65,10 +65,6 @@ export async function main(args: string[]) {
   }
 
   const thunk = testsThunk(tests);
-
-  // TODO verbosity/quiet argument?
-  const options: UddOptions = { dryRun: a["dry-run"] };
-
   try {
     await thunk();
   } catch {
@@ -78,11 +74,14 @@ export async function main(args: string[]) {
     Deno.exit(1);
   }
 
+  // TODO verbosity/quiet argument?
+  const options: UddOptions = { dryRun: a["dry-run"], test: thunk };
+
   const results: UddResult[] = [];
   for (const [i, fn] of depFiles.entries()) {
     if (i !== 0) console.log();
     console.log(colors.yellow(fn));
-    results.push(...await udd(fn, thunk, options));
+    results.push(...await udd(fn, options));
   }
 
   // TODO perhaps a table would be a nicer output?
