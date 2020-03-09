@@ -7,7 +7,7 @@ const END = noColor ? "\n" : "";
 export class Progress {
   n: number;
   w: Deno.Writer;
-  step: number = 0;
+  step: number = -1;
 
   constructor(n: number, w: Deno.Writer = Deno.stdout) {
     this.n = n;

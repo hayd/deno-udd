@@ -1,5 +1,7 @@
 // FIXME don't use any[]
-export function registry(url: string, registries: any[]): RegistryUrl | undefined {
+export function registry(url: string, registries: any[]): RegistryUrl
+  | undefined
+{
   for (const R of registries) {
     const u = new R(url) as RegistryUrl;
     if (u.regexp.test(url)) {

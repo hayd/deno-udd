@@ -8,16 +8,15 @@ import { REGISTRIES, registry, RegistryUrl } from "./registry.ts";
 export async function udd(
   filename: string,
   test: () => Promise<void>,
-  options: UddOptions,
-  // FIXME don't use any[] here
-  registries: any[] = REGISTRIES
+  options: UddOptions
 ): Promise<UddResult[]> {
-  const u = new Udd(filename, test, options, registries);
+  const u = new Udd(filename, test, options);
   return await u.run();
 }
 
 export interface UddOptions {
   dryRun: boolean;
+  _registries?: any[];
 }
 
 export interface UddResult {
@@ -37,13 +36,12 @@ export class Udd {
   constructor(
     filename: string,
     test: () => Promise<void>,
-    options: UddOptions,
-    registries: any[]
+    options: UddOptions
   ) {
     this.filename = filename;
     this.test = test;
     this.options = options;
-    this.registries = registries;
+    this.registries = options._registries || REGISTRIES;
     this.progress = new Progress(1);
   }
 
