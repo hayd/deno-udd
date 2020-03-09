@@ -61,7 +61,7 @@ export class Udd {
     const results: UddResult[] = [];
     for (const [i, u] of urls.entries()) {
       this.progress.step = i;
-      const v = registry(u);
+      const v = registry(u, this.registries);
       if (v !== undefined) {
         results.push(await this.update(v!));
       }

@@ -1,12 +1,7 @@
-// deno --allow-run main.ts deps.ts --test="fetch main.ts" --test=test
-// perhaps --compile instead?
+// deno -A main.ts deps.ts --test="deno test"
 
 import { colors, parseArgs } from "./deps.ts";
 import { UddOptions, UddResult, udd } from "./mod.ts";
-
-// TODO verbosity e.g. show all versions available
-// TODO quiet show little
-// export let verbosity = 1;
 
 function testsThunk(tests: string[]): () => Promise<void> {
   return async () => {
@@ -23,7 +18,7 @@ function testsThunk(tests: string[]): () => Promise<void> {
         console.log();
         await Deno.stdout.write(await p.stderrOutput());
       }
-      // This close handling is cleans up resouces but is not required...
+      // This close handling cleans up resouces but is not required...
       p.close();
       p.stdout!.close();
       p.stderr!.close();

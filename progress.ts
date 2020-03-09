@@ -14,7 +14,7 @@ export class Progress {
     this.w = w;
   }
   async log(msg: string) {
-    // we assume that msg doesn't contain \n
+    // We expect but don't enforce that msg doesn't contain \n.
     const line = `${START}[${this.step + 1}/${this.n}] ${msg}${END}`;
     const b = encode(line);
     await this.w.write(b);
