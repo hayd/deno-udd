@@ -1,9 +1,9 @@
 import { assert, assertEquals } from "./test_deps.ts";
-import { versioned } from "./versioned.ts";
+import { registry } from "./registry.ts";
 
 Deno.test(function denolandStd() {
   const url = "https://deno.land/std@0.35.0/foo.ts";
-  const v = versioned(url);
+  const v = registry(url);
   assert(v !== undefined);
 
   const vAt = v.at("0.1.0");
@@ -12,7 +12,7 @@ Deno.test(function denolandStd() {
 
 Deno.test(function denolandX() {
   const url = "https://deno.land/x/foo@0.1.0/foo.ts";
-  const v = versioned(url);
+  const v = registry(url);
   assert(v !== undefined);
 
   const vAt = v.at("0.2.0");

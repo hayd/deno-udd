@@ -2,13 +2,13 @@
 // perhaps --compile instead?
 
 import { colors, parseArgs } from "./deps.ts";
-import { UpdateOptions, UpdateResult, update } from "./update.ts";
+import { UddOptions, UddResult, udd } from "./mod.ts";
 
 // TODO verbosity e.g. show all versions available
 // TODO quiet show little
 // export let verbosity = 1;
 
-function testsThunk(tests: string[]): () => Promise<boolean> {
+function testsThunk(tests: string[]): () => Promise<void> {
   return async () => {
     for (const t of tests) {
       // FIXME is there a better way to split / pass arrays?
@@ -18,13 +18,19 @@ function testsThunk(tests: string[]): () => Promise<boolean> {
         stdout: "piped",
         stderr: "piped"
       });
-      if (!(await p.status()).success) {
+      const success = (await p.status()).success;
+      if (!success) {
         console.log();
         await Deno.stdout.write(await p.stderrOutput());
-        return true;
+      }
+      // This close handling is cleans up resouces but is not required...
+      p.close();
+      p.stdout!.close();
+      p.stderr!.close();
+      if (!success) {
+        throw new Error(t);
       }
     }
-    return false;
   };
 }
 
@@ -66,20 +72,22 @@ export async function main(args: string[]) {
   const thunk = testsThunk(tests);
 
   // TODO verbosity/quiet argument?
-  const options: UpdateOptions = { dryRun: a["dry-run"] };
+  const options: UddOptions = { dryRun: a["dry-run"] };
 
-  if (await thunk()) {
+  try {
+    await thunk();
+  } catch {
     console.error(
       colors.red("Tests failed prior to updating any dependencies")
     );
     Deno.exit(1);
   }
 
-  const results: UpdateResult[] = [];
+  const results: UddResult[] = [];
   for (const [i, fn] of depFiles.entries()) {
     if (i !== 0) console.log();
     console.log(colors.yellow(fn));
-    results.push(...await update(fn, thunk, options));
+    results.push(...await udd(fn, thunk, options));
   }
 
   // TODO perhaps a table would be a nicer output?
@@ -88,7 +96,7 @@ export async function main(args: string[]) {
   if (alreadyLatest.length > 0) {
     console.log(colors.bold("\nAlready latest version:"));
     for (const a of alreadyLatest) {
-      console.log(colors.dim(a.initUrl), "->", a.initVersion);
+      console.log(colors.dim(a.initUrl), "==", a.initVersion);
     }
   }
 

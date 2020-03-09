@@ -1,4 +1,5 @@
 import { assertEquals } from "./test_deps.ts";
+import { REGISTRIES } from "./registry.ts";
 import { importUrls } from "./search.ts";
 
 Deno.test(function denolandImports() {
@@ -15,7 +16,7 @@ import { foo } from "https://deno.land/std@0.35.0/foo.ts";
 import { bar } from "https://deno.land/x/foo@0.35.0/foo.ts";
 `;
 
-  const urls = importUrls(ts);
+  const urls = importUrls(ts, REGISTRIES);
   urls.sort();
   assertEquals(urls, expected);
 });

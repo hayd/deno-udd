@@ -1,29 +1,29 @@
-export function versioned(url: string): Versioned | undefined {
-  for (const Impl of IMPLS) {
-    const v = new Impl(url) as Versioned;
-    if (v.regexp.test(url)) {
-      return v;
+export function registry(url: string): RegistryUrl | undefined {
+  for (const R of REGISTRIES) {
+    const u = new R(url) as RegistryUrl;
+    if (u.regexp.test(url)) {
+      return u;
     }
   }
 }
 
-export interface Versioned {
+export interface RegistryUrl {
   url: string;
   // all versions of the url
   all: () => Promise<string[]>;
   // url at a given version
-  at(version: string): Versioned;
+  at(version: string): RegistryUrl;
   // current version of url
-  current: () => string;
-  // is url valid for this Versioned
+  version: () => string;
+  // is url valid for this RegistryUrl
   regexp: RegExp;
 }
 
-function defaultAt(that: Versioned, version: string): string {
+function defaultAt(that: RegistryUrl, version: string): string {
   return that.url.replace(/\@([^\/]*?)\//, `@${version}/`);
 }
 
-function defaultCurrent(that: Versioned): string {
+function defaultVersion(that: RegistryUrl): string {
   const v = that.url.match(/\@([^\/]*?)\//);
   if (v === null) {
     throw Error(`Unable to find version in ${that.url}`);
@@ -31,7 +31,7 @@ function defaultCurrent(that: Versioned): string {
   return v[1];
 }
 
-function defaultName(that: Versioned): string {
+function defaultName(that: RegistryUrl): string {
   const n = that.url.match(/([^\/\"\']*?)\@[^\'\"]*/);
   if (n === null) {
     throw new Error(`Package name not found in ${that.url}`);
@@ -50,7 +50,9 @@ async function githubReleases(
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
   }
-  const page = await fetch(`http://github.com/${owner}/${repo}/releases.atom`);
+  const page = await fetch(
+    `https://github.com/${owner}/${repo}/releases.atom`
+  );
   const text = await page.text();
   // naively, we grab all the titles, except the first which is the page titleL
   const versions = [
@@ -64,7 +66,7 @@ async function githubReleases(
 
 let denoLandDB: any;
 
-class DenoLand implements Versioned {
+class DenoLand implements RegistryUrl {
   url: string;
 
   constructor(url: string) {
@@ -96,19 +98,19 @@ class DenoLand implements Versioned {
     return await githubReleases(owner, repo);
   }
 
-  at(version: string): Versioned {
+  at(version: string): RegistryUrl {
     const url = defaultAt(this, version);
     return new DenoLand(url);
   }
 
-  current(): string {
-    return defaultCurrent(this);
+  version(): string {
+    return defaultVersion(this);
   }
 
   regexp: RegExp = /https?:\/\/deno.land\/x\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-class DenoStd implements Versioned {
+class DenoStd implements RegistryUrl {
   url: string;
 
   constructor(url: string) {
@@ -119,19 +121,19 @@ class DenoStd implements Versioned {
     return await githubReleases("denoland", "deno");
   }
 
-  at(version: string): Versioned {
+  at(version: string): RegistryUrl {
     const url = defaultAt(this, version);
     return new DenoStd(url);
   }
 
-  current(): string {
-    return defaultCurrent(this);
+  version(): string {
+    return defaultVersion(this);
   }
 
   regexp: RegExp = /https?:\/\/deno.land\/std\@[^\'\"]*/;
 }
 
-class Unpkg implements Versioned {
+class Unpkg implements RegistryUrl {
   url: string;
 
   name(): string {
@@ -151,19 +153,19 @@ class Unpkg implements Versioned {
     return m.map(x => x[1]);
   }
 
-  at(version: string): Versioned {
+  at(version: string): RegistryUrl {
     const url = defaultAt(this, version);
     return new Unpkg(url);
   }
 
-  current(): string {
-    return defaultCurrent(this);
+  version(): string {
+    return defaultVersion(this);
   }
 
   regexp: RegExp = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-class Denopkg implements Versioned {
+class Denopkg implements RegistryUrl {
   url: string;
 
   owner(): string {
@@ -182,13 +184,13 @@ class Denopkg implements Versioned {
     return await githubReleases(this.owner(), this.repo());
   }
 
-  at(version: string): Versioned {
+  at(version: string): RegistryUrl {
     const url = defaultAt(this, version);
     return new Denopkg(url);
   }
 
-  current(): string {
-    return defaultCurrent(this);
+  version(): string {
+    return defaultVersion(this);
   }
 
   regexp: RegExp =
@@ -197,4 +199,4 @@ class Denopkg implements Versioned {
 
 // TODO Pika
 
-export const IMPLS = [DenoStd, DenoLand, Unpkg, Denopkg];
+export const REGISTRIES = [DenoStd, DenoLand, Unpkg, Denopkg];
