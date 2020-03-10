@@ -44,7 +44,7 @@ Optional arguments:
 }
 
 async function main(args: string[]) {
-  const a = parseArgs(args);
+  const a = parseArgs(args, { boolean: ["dry-run", "h", "help"] });
 
   if (a.h || a.help) {
     return help();
