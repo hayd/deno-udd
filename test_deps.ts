@@ -3,7 +3,9 @@ import { DenoStd } from "./registry.ts";
 
 export {
   assert,
-  assertEquals
+  assertEquals,
+  assertThrows,
+  assertThrowsAsync
 } from "https://deno.land/std@v0.35.0/testing/asserts.ts";
 
 export class FakeRegistry implements RegistryUrl {

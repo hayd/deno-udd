@@ -1,6 +1,7 @@
 import { decode, encode, colors } from "./deps.ts";
 import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
+import { Semver, fragment, semver } from "./semver.ts";
 import { REGISTRIES, RegistryUrl, lookup } from "./registry.ts";
 
 // FIXME we should catch ctrl-c etc. and write back the original deps.ts
@@ -78,21 +79,42 @@ export class Udd {
     await this.progress.log(`Looking for releases: ${url.url}`);
     const versions = await url.all();
 
-    if (initVersion === versions[0]) {
+    // for now, let's pick the most recent!
+    let newVersion = versions[0];
+
+    if (initVersion === newVersion) {
       // already at latest version, skip!
       await this.progress.log(`Using latest: ${url.url}`);
       return { initUrl: url.url, initVersion };
     }
 
-    // TODO: options: try latest, semver compat, or input
-    // pick a new version (should be in for loop?)
-    // i.e. rety or skip if fails
-
-    // for now, let's pick the most recent!
-    const newVersion = versions[0];
-
-    // console.log("  Current version:", url.current());
-    // console.log("  Available versions:", versions.join(","));
+    // if we pass a fragment with semver
+    let filter: ((other: Semver) => boolean) | undefined = undefined;
+    try {
+      filter = fragment(url.url, url.version());
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return {
+          initUrl: url.url,
+          initVersion,
+          success: false,
+          newVersion: e.message
+        };
+      } else {
+        throw e;
+      }
+    }
+    if (filter !== undefined) {
+      const compatible: string[] = versions.map(semver).filter(x =>
+        x !== undefined
+      ).map(x => x!).filter(filter).map(x => x.version);
+      if (compatible.length === 0) {
+        throw new Error(
+          `No compatible versions found for ${url.url}`
+        );
+      }
+      newVersion = compatible[0];
+    }
 
     await this.progress.log(`Attempting update: ${url.url} -> ${newVersion}`);
     const failed: boolean = await this.maybeReplace(url, newVersion);
