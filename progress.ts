@@ -1,7 +1,7 @@
 import { encode } from "./deps.ts";
 const { noColor } = Deno;
 
-const START = noColor ? "" : "\u001b[999D";
+const START = noColor ? "" : "\u001b[999D\u001b[K";
 const END = noColor ? "\n" : "";
 
 export class Progress {

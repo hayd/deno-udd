@@ -1,8 +1,9 @@
 // Rolling our own until deno.land/x/semver is strict...
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+// we also allow v? at the beginning since this is prevalent...
 const regex =
-  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+  /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
 export function semver(version: string): Semver | undefined {
   try {
@@ -114,7 +115,7 @@ export function fragment(
     const s = new Semver(v || version);
     // we have to reverse this due to the way fragments work...
     return (other: Semver) => other._(t, s);
-  } catch {
-    throw new SyntaxError(`invalid semver fragment: ${f}`);
+  } catch (e) {
+    throw new SyntaxError(`invalid semver version: ${v || version}`);
   }
 }

@@ -42,7 +42,28 @@ export function defaultName(that: RegistryUrl): string {
   return n[1];
 }
 
+async function githubDownloadRelases(
+  owner: string,
+  repo: string,
+  lastVersion: string | undefined = undefined
+): Promise<string[]> {
+  let url = `https://github.com/${owner}/${repo}/releases.atom`;
+  if (lastVersion) {
+    url += `?${lastVersion}`;
+  }
+  // FIXME do we need to handle 404?
+
+  const page = await fetch(url);
+  const text = await page.text();
+  return [
+    ...text.matchAll(
+      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g
+    )
+  ].map(x => x[1]);
+}
+
 // export for testing purposes
+// FIXME this should really be lazy, we shouldn't always iterate everything...
 export const GR_CACHE: Map<string, string[]> = new Map<string, string[]>();
 async function githubReleases(
   owner: string,
@@ -53,16 +74,17 @@ async function githubReleases(
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
   }
-  const page = await fetch(
-    `https://github.com/${owner}/${repo}/releases.atom`
-  );
-  const text = await page.text();
-  // naively, we grab all the titles, except the first which is the page titleL
-  const versions = [
-    ...text.matchAll(
-      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g
-    )
-  ].map(x => x[1]);
+  const versions = await githubDownloadRelases(owner, repo);
+  if (versions.length === 10) {
+    let lastVersion: string | undefined = undefined;
+    // arbitrarily we're going to limit to 5 pages...?
+    let i: number = 0;
+    while (lastVersion !== versions[versions.length - 1] && i < 5) {
+      i++;
+      lastVersion = versions[versions.length];
+      versions.push(...await githubDownloadRelases(owner, repo, lastVersion));
+    }
+  }
   cache.set(cacheKey, versions);
   return versions;
 }

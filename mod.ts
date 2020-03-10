@@ -82,12 +82,6 @@ export class Udd {
     // for now, let's pick the most recent!
     let newVersion = versions[0];
 
-    if (initVersion === newVersion) {
-      // already at latest version, skip!
-      await this.progress.log(`Using latest: ${url.url}`);
-      return { initUrl: url.url, initVersion };
-    }
-
     // if we pass a fragment with semver
     let filter: ((other: Semver) => boolean) | undefined = undefined;
     try {
@@ -104,16 +98,25 @@ export class Udd {
         throw e;
       }
     }
+    // potentially we can shortcut if fragment is #=${url.version()}...
     if (filter !== undefined) {
       const compatible: string[] = versions.map(semver).filter(x =>
         x !== undefined
       ).map(x => x!).filter(filter).map(x => x.version);
       if (compatible.length === 0) {
-        throw new Error(
-          `No compatible versions found for ${url.url}`
-        );
+        return {
+          initUrl: url.url,
+          initVersion,
+          success: false,
+          newVersion: "no compatible version found"
+        };
       }
       newVersion = compatible[0];
+    }
+
+    if (initVersion === newVersion) {
+      await this.progress.log(`Using latest: ${url.url}`);
+      return { initUrl: url.url, initVersion };
     }
 
     await this.progress.log(`Attempting update: ${url.url} -> ${newVersion}`);
