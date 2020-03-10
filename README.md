@@ -1,10 +1,10 @@
 # Update Deno Dependencies
 
-Run this script to update your dependency urls to the latest published versions.
+Run this script to update your dependency urls to their latest published versions.
 
 ![deno-udd](https://user-images.githubusercontent.com/1931852/76134819-37add280-5fd6-11ea-96c3-adbd57cfa68c.jpg)
 
-Prior to updating each url, the updater optionally runs the passed --test(s)
+Prior to updating each url, udd optionally runs the passed --test(s)
 to ensure that updating is non-breaking.
 
 ![ci-status](https://github.com/hayd/deno-udd/workflows/ci/badge.svg)
@@ -20,13 +20,13 @@ _You may need to include the deno bin directory in your PATH._
 
 ## Usage
 
-For example, suppos to update url imports inside `deps.ts` run:
+For example, to update url imports inside `deps.ts` run:
 
 ```sh
 udd deps.ts
 ```
 
-To ensure that `deno test` doesn't error before updating each dependency:
+To ensure that `deno test` is successful when updating each dependency:
 
 ```sh
 udd deps.ts --test="deno test"
@@ -57,7 +57,7 @@ If you append a fragment `#${token}${version}` to your urls you can manage their
 | < | Less than     | less than the provided version |
 | = | Equal         | it's exactly this version |
 
-The version argument is options for `^`, `~` and `=` (the version passed is the version in the url).
+The version argument is optional for `^`, `~` and `=` (the version passed is the version in the url).
 
 ### Examples
 
