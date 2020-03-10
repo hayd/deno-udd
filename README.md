@@ -26,10 +26,10 @@ For example, suppos to update url imports inside `deps.ts` run:
 udd deps.ts
 ```
 
-To ensure that both `deno fetch main.ts` and `deno test` don't error:
+To ensure that `deno test` doesn't error before updating each dependency:
 
 ```sh
-udd deps.ts --test="deno fetch main.ts" --test="deno test"
+udd deps.ts --test="deno test"
 ```
 
 ## Example
@@ -44,6 +44,39 @@ Running udd looks up the std versions to see that there is a more recent std rel
 ```ts
 // deps.ts (after)
 export { decode } from "https://deno.land/std@v0.35.0/strings/decode.ts";
+```
+
+## Semantic version notation
+
+If you append a fragment `#${token}${version}` to your urls you can manage their update behavior:
+
+| Token | Name | udd updates to the latest version such that |
+| :---  | :--- |     ---: |
+| ^ | Compatible    | major version is the same (if major=0 then same minor version) |
+| ~ | Approximately | major and minor version are the same |
+| < | Less than     | less than the provided version |
+| = | Equal         | it's exactly this version |
+
+The version argument is options for `^`, `~` and `=` (the version passed is the version in the url).
+
+### Examples
+
+```ts
+// deps.ts (before)
+export { Application } from "https://deno.land/x/oak@v2.4.0/mod.ts#^";
+export { decode } from "https://deno.land/std@v0.34.0/strings/decode.ts#=";
+export { Application } from "https://deno.land/x/abc@v0.1.10/mod.ts#<0.2.0";
+export { encode } from "https://deno.land/std@v0.34.0/strings/encode.ts#~";
+```
+
+Running udd:
+
+```ts
+// deps.ts (after)
+export { Application } from "https://deno.land/x/oak@v2.10.0/mod.ts#^";
+export { decode } from "https://deno.land/std@v0.34.0/strings/decode.ts#=";
+export { Application } from "https://deno.land/x/abc@v0.1.11/mod.ts#<0.2.0";
+export { encode } from "https://deno.land/std@v0.35.0/strings/encode.ts#~";
 ```
 
 ## Supported domains
