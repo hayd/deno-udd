@@ -85,8 +85,9 @@ udd supports the following registry domains:
 
 - https://deno.land/std
 - https://deno.land/x
-- https://unpkg.com
 - https://denopkg.com
+- https://dev.jspm.io
+- https://unpkg.com
 
 _Create an issue to request additional registries._
 
