@@ -1,7 +1,6 @@
 // FIXME don't use any[]
 export function lookup(url: string, registries: any[]): RegistryUrl
-  | undefined
-{
+  | undefined {
   for (const R of registries) {
     const u = new R(url) as RegistryUrl;
     if (u.regexp.test(url)) {
@@ -158,6 +157,15 @@ export class DenoStd implements RegistryUrl {
   regexp: RegExp = /https?:\/\/deno.land\/std\@[^\'\"]*/;
 }
 
+async function unpkgVersions(name: string): Promise<string[]> {
+  const page = await fetch(`https://unpkg.com/browse/${name}/`);
+  const text = await page.text();
+  // naively, we grab all the options
+  const m = [...text.matchAll(/\<option[^\<\>]* value\=\"(.*?)\"\>/g)];
+  m.reverse();
+  return m.map(x => x[1]);
+}
+
 export class Unpkg implements RegistryUrl {
   url: string;
 
@@ -170,12 +178,7 @@ export class Unpkg implements RegistryUrl {
   }
 
   async all(): Promise<string[]> {
-    const page = await fetch(`https://unpkg.com/browse/${this.name()}/`);
-    const text = await page.text();
-    // naively, we grab all the titles, except the first which is the page titleL
-    const m = [...text.matchAll(/\<option value\=\"(.*?)\"\>/g)];
-    m.reverse();
-    return m.map(x => x[1]);
+    return await unpkgVersions(this.name());
   }
 
   at(version: string): RegistryUrl {
@@ -188,6 +191,33 @@ export class Unpkg implements RegistryUrl {
   }
 
   regexp: RegExp = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
+export class Jspm implements RegistryUrl {
+  url: string;
+
+  name(): string {
+    return defaultName(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    return await unpkgVersions(this.name());
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultAt(this, version);
+    return new Jspm(url);
+  }
+
+  version(): string {
+    return defaultVersion(this);
+  }
+
+  regexp: RegExp = /https?:\/\/dev.jspm.io\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 export class Denopkg implements RegistryUrl {
@@ -224,4 +254,4 @@ export class Denopkg implements RegistryUrl {
 
 // TODO Pika
 
-export const REGISTRIES = [DenoStd, DenoLand, Unpkg, Denopkg];
+export const REGISTRIES = [DenoStd, DenoLand, Unpkg, Denopkg, Jspm];

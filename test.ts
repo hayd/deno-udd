@@ -41,7 +41,7 @@ Deno.test(async function uddFakeregistryNotFound() {
   const results = await testUdd(contents, expected);
   assertEquals(1, results.length);
   assertEquals(false, results[0].success);
-  assertEquals("no compatible version found", results[0].newVersion);
+  assertEquals("no compatible version found", results[0].message);
 });
 
 Deno.test(async function uddFakeDenolandStd() {
@@ -90,7 +90,7 @@ Deno.test(async function uddFakeregistryInvalidFragmentSemver() {
   const results = await testUdd(contents, expected);
   assertEquals(results.length, 1);
   assertEquals(results[0].success, false);
-  assertEquals(results[0].newVersion, "invalid semver version: 0.1.b");
+  assertEquals(results[0].message, "invalid semver version: 0.1.b");
 });
 
 Deno.test(async function uddFakeregistryInvalidFragmentFoo() {
@@ -99,7 +99,7 @@ Deno.test(async function uddFakeregistryInvalidFragmentFoo() {
   const results = await testUdd(contents, expected);
   assertEquals(results.length, 1);
   assertEquals(results[0].success, false);
-  assertEquals(results[0].newVersion, "invalid semver fragment: foo");
+  assertEquals(results[0].message, "invalid semver fragment: foo");
 });
 
 Deno.test(async function uddFakeregistryEq() {

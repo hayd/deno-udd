@@ -103,8 +103,7 @@ export function fragment(
   url: string,
   version: string
 ): ((other: Semver) => boolean)
-  | undefined
-{
+  | undefined {
   const tokens = /^(~|\^|<|<=|>|>=|=)\s*(.*?)$/;
   const f = url.split("#")[1];
   if (f === undefined) return;

@@ -86,7 +86,7 @@ async function main(args: string[]) {
 
   // TODO perhaps a table would be a nicer output?
 
-  const alreadyLatest = results.filter(x => x.newVersion === undefined);
+  const alreadyLatest = results.filter(x => x.message === undefined);
   if (alreadyLatest.length > 0) {
     console.log(colors.bold("\nAlready latest version:"));
     for (const a of alreadyLatest) {
@@ -102,7 +102,7 @@ async function main(args: string[]) {
       )
     );
     for (const s of successes) {
-      console.log(colors.green(s.initUrl), s.initVersion, "->", s.newVersion);
+      console.log(colors.green(s.initUrl), s.initVersion, "->", s.message);
     }
   }
 
@@ -114,7 +114,7 @@ async function main(args: string[]) {
       )
     );
     for (const f of failures) {
-      console.log(colors.red(f.initUrl), f.initVersion, "->", f.newVersion);
+      console.log(colors.red(f.initUrl), f.initVersion, "->", f.message);
     }
     Deno.exit(1);
   }

@@ -28,7 +28,7 @@ export interface UddOptions {
 export interface UddResult {
   initUrl: string;
   initVersion: string;
-  newVersion?: string;
+  message?: string;
   success?: boolean;
 }
 
@@ -92,7 +92,7 @@ export class Udd {
           initUrl: url.url,
           initVersion,
           success: false,
-          newVersion: e.message
+          message: e.message
         };
       } else {
         throw e;
@@ -108,7 +108,7 @@ export class Udd {
           initUrl: url.url,
           initVersion,
           success: false,
-          newVersion: "no compatible version found"
+          message: "no compatible version found"
         };
       }
       newVersion = compatible[0];
@@ -126,7 +126,7 @@ export class Udd {
     return {
       initUrl: url.url,
       initVersion,
-      newVersion,
+      message: newVersion,
       success: !failed
     };
   }
