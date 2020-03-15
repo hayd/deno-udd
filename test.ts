@@ -144,3 +144,15 @@ import { bar } from "https://fakeregistry.com/foo@0.0.1/bar.ts#=";
   // FIXME make less fragile by improving search.ts to provide urls in order
   assertEquals([true, undefined, true, true], results.map(x => x.success));
 });
+
+Deno.test(async function uddFakeregistryFragmentMove() {
+  const contents = 'import "https://fakeregistry.com/foo@~0.0.1/mod.ts";';
+  const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~";';
+  await testUdd(contents, expected);
+});
+
+Deno.test(async function uddFakeregistryFragmentMoveEq() {
+  const contents = 'import "https://fakeregistry.com/foo@=0.0.1/mod.ts";';
+  const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=";';
+  await testUdd(contents, expected);
+});

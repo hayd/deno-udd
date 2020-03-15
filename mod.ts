@@ -75,12 +75,21 @@ export class Udd {
   async update(
     url: RegistryUrl
   ): Promise<UddResult> {
-    const initVersion = url.version();
+    const initUrl: string = url.url;
+    const initVersion: string = url.version();
+    let newFragmentToken: string | undefined = undefined;
     await this.progress.log(`Looking for releases: ${url.url}`);
     const versions = await url.all();
 
     // for now, let's pick the most recent!
     let newVersion = versions[0];
+
+    // FIXME warn that the version modifier is moved to a fragment...
+    // if the version includes a modifier we move it to the fragment
+    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
+      newFragmentToken = initVersion[0]
+      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`
+    }
 
     // if we pass a fragment with semver
     let filter: ((other: Semver) => boolean) | undefined = undefined;
@@ -89,7 +98,7 @@ export class Udd {
     } catch (e) {
       if (e instanceof SyntaxError) {
         return {
-          initUrl: url.url,
+          initUrl,
           initVersion,
           success: false,
           message: e.message
@@ -98,6 +107,7 @@ export class Udd {
         throw e;
       }
     }
+
     // potentially we can shortcut if fragment is #=${url.version()}...
     if (filter !== undefined) {
       const compatible: string[] = versions.map(semver).filter(x =>
@@ -105,7 +115,7 @@ export class Udd {
       ).map(x => x!).filter(filter).map(x => x.version);
       if (compatible.length === 0) {
         return {
-          initUrl: url.url,
+          initUrl,
           initVersion,
           success: false,
           message: "no compatible version found"
@@ -114,40 +124,43 @@ export class Udd {
       newVersion = compatible[0];
     }
 
-    if (initVersion === newVersion) {
+    if (url.version() === newVersion && newFragmentToken === undefined) {
       await this.progress.log(`Using latest: ${url.url}`);
-      return { initUrl: url.url, initVersion };
+      return { initUrl, initVersion };
     }
 
     await this.progress.log(`Attempting update: ${url.url} -> ${newVersion}`);
-    const failed: boolean = await this.maybeReplace(url, newVersion);
+    const failed: boolean = await this.maybeReplace(url, newVersion, initUrl);
     const msg = failed ? "failed" : "successful";
     await this.progress.log(`Update ${msg}: ${url.url} -> ${newVersion}`);
+    const maybeFragment = newFragmentToken === undefined ? "" : `#${newFragmentToken}`;
     return {
-      initUrl: url.url,
+      initUrl,
       initVersion,
-      message: newVersion,
+      message: newVersion + colors.yellow(maybeFragment),
       success: !failed
     };
   }
 
+  // Note: we pass initUrl because it may have been modified with fragments :(
   async maybeReplace(
     url: RegistryUrl,
-    newVersion: string
+    newVersion: string,
+    initUrl: string
   ): Promise<boolean> {
-    const newUrl = url.at(newVersion);
-    await this.replace(url, newUrl);
+    const newUrl = url.at(newVersion).url;
+    await this.replace(initUrl, newUrl);
 
     const failed = await this.test().then(_ => false).catch(_ => true);
     if (failed || this.options.dryRun) {
-      await this.replace(newUrl, url);
+      await this.replace(newUrl, initUrl);
     }
     return failed;
   }
 
-  async replace(url: RegistryUrl, newUrl: RegistryUrl) {
+  async replace(left: string, right: string) {
     const content = await this.content();
-    const newContent = content.split(url.url).join(newUrl.url);
+    const newContent = content.split(left).join(right);
     await Deno.writeFile(this.filename, encode(newContent));
   }
 }

@@ -22,11 +22,11 @@ export interface RegistryUrl {
 }
 
 export function defaultAt(that: RegistryUrl, version: string): string {
-  return that.url.replace(/\@([^\/]*?)\//, `@${version}/`);
+  return that.url.replace(/@(.*?)(\/|$)/, `@${version}/`);
 }
 
 export function defaultVersion(that: RegistryUrl): string {
-  const v = that.url.match(/\@([^\/]*?)\//);
+  const v = that.url.match(/\@([^\/]+)[\/$]?/);
   if (v === null) {
     throw Error(`Unable to find version in ${that.url}`);
   }
@@ -254,4 +254,31 @@ export class Denopkg implements RegistryUrl {
 
 // TODO Pika
 
-export const REGISTRIES = [DenoStd, DenoLand, Unpkg, Denopkg, Jspm];
+export class Pika implements RegistryUrl {
+  url: string;
+
+  name(): string {
+    return defaultName(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    return await unpkgVersions(this.name());
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultAt(this, version);
+    return new Pika(url);
+  }
+
+  version(): string {
+    return defaultVersion(this);
+  }
+
+  regexp: RegExp = /https?:\/\/cdn.pika.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
+export const REGISTRIES = [DenoStd, DenoLand, Unpkg, Denopkg, Jspm, Pika];
