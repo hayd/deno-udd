@@ -61,23 +61,21 @@ The version argument is optional for `^`, `~` and `=` (the version passed is the
 
 ### Examples
 
-```ts
-// deps.ts (before)
-export { Application } from "https://deno.land/x/oak@v2.4.0/mod.ts#^";
-export { decode } from "https://deno.land/std@v0.34.0/strings/decode.ts#=";
-export { Application } from "https://deno.land/x/abc@v0.1.10/mod.ts#<0.2.0";
-export { encode } from "https://deno.land/std@v0.34.0/strings/encode.ts#~";
+```diff
+-export { Application } from "https://deno.land/x/oak@v2.4.0/mod.ts#^";
++export { Application } from "https://deno.land/x/oak@v2.10.0/mod.ts#^";  // 3.x.y is not chosen
+
+-export { decode } from "https://deno.land/std@v0.34.0/strings/decode.ts#=";
++export { decode } from "https://deno.land/std@v0.34.0/strings/decode.ts#=";  // no change
+
+-export { Application } from "https://deno.land/x/abc@v0.1.10/mod.ts#<0.2.0";
++export { Application } from "https://deno.land/x/abc@v0.1.11/mod.ts#<0.2.0";  // 0.2.x is not chosen
+
+-export { encode } from "https://deno.land/std@v0.34.0/strings/encode.ts#~";
++export { encode } from "https://deno.land/std@v0.36.0/strings/encode.ts#~";  // update to latest compatible
 ```
 
-Running udd:
-
-```ts
-// deps.ts (after)
-export { Application } from "https://deno.land/x/oak@v2.10.0/mod.ts#^";  # 3.x.y is not chosen
-export { decode } from "https://deno.land/std@v0.34.0/strings/decode.ts#=";
-export { Application } from "https://deno.land/x/abc@v0.1.11/mod.ts#<0.2.0";  # 0.2.x is not chosen
-export { encode } from "https://deno.land/std@v0.36.0/strings/encode.ts#~";
-```
+![udd-in-action](https://user-images.githubusercontent.com/1931852/76695958-a1675580-6642-11ea-81d1-9ed15d22965f.gif)
 
 ## Supported domains
 
