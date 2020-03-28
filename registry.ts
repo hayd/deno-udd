@@ -1,5 +1,6 @@
 // FIXME don't use any[]
-export function lookup(url: string, registries: any[]): RegistryUrl
+export function lookup(url: string, registries: any[]):
+  | RegistryUrl
   | undefined {
   for (const R of registries) {
     const u = new R(url) as RegistryUrl;
@@ -44,7 +45,7 @@ export function defaultName(that: RegistryUrl): string {
 async function githubDownloadRelases(
   owner: string,
   repo: string,
-  lastVersion: string | undefined = undefined
+  lastVersion: string | undefined = undefined,
 ): Promise<string[]> {
   let url = `https://github.com/${owner}/${repo}/releases.atom`;
   if (lastVersion) {
@@ -56,9 +57,9 @@ async function githubDownloadRelases(
   const text = await page.text();
   return [
     ...text.matchAll(
-      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g
-    )
-  ].map(x => x[1]);
+      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g,
+    ),
+  ].map((x) => x[1]);
 }
 
 // export for testing purposes
@@ -67,7 +68,7 @@ export const GR_CACHE: Map<string, string[]> = new Map<string, string[]>();
 async function githubReleases(
   owner: string,
   repo: string,
-  cache: Map<string, string[]> = GR_CACHE
+  cache: Map<string, string[]> = GR_CACHE,
 ): Promise<string[]> {
   const cacheKey = `${owner}/${repo}`;
   if (cache.has(cacheKey)) {
@@ -163,7 +164,7 @@ async function unpkgVersions(name: string): Promise<string[]> {
   // naively, we grab all the options
   const m = [...text.matchAll(/\<option[^\<\>]* value\=\"(.*?)\"\>/g)];
   m.reverse();
-  return m.map(x => x[1]);
+  return m.map((x) => x[1]);
 }
 
 export class Unpkg implements RegistryUrl {
@@ -248,8 +249,7 @@ export class Denopkg implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp =
-    /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
+  regexp: RegExp = /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 // TODO Pika

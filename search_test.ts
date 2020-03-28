@@ -5,7 +5,7 @@ import { importUrls } from "./search.ts";
 Deno.test(function denolandImports() {
   const expected = [
     "https://deno.land/std@0.35.0/foo.ts",
-    "https://deno.land/x/foo@0.35.0/foo.ts"
+    "https://deno.land/x/foo@0.35.0/foo.ts",
   ];
   //   const ts = `
   // import { foo } from "${expected[0]}";

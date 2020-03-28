@@ -11,14 +11,14 @@ import {
 async function testUdd(
   before: string,
   after: string,
-  registries: any[] = [FakeRegistry]
+  registries: any[] = [FakeRegistry],
 ) {
   const fn = await Deno.makeTempFile();
   try {
     await Deno.writeFile(fn, encode(before));
     const results: UddResult[] = await udd(
       fn,
-      { _registries: registries, quiet: true } as UddOptions
+      { _registries: registries, quiet: true } as UddOptions,
     );
 
     const altered = decode(await Deno.readFile(fn));
@@ -51,26 +51,20 @@ Deno.test(async function uddFakeDenolandStd() {
 });
 
 Deno.test(async function uddFakeregistryEqToken() {
-  const contents =
-    'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=0.0.1";';
-  const expected =
-    'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=0.0.1";';
+  const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=0.0.1";';
+  const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=0.0.1";';
   await testUdd(contents, expected);
 });
 
 Deno.test(async function uddFakeregistryTildeToken() {
-  const contents =
-    'import "https://fakeregistry.com/foo@0.0.1/mod.ts#~0.0.1";';
-  const expected =
-    'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~0.0.1";';
+  const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#~0.0.1";';
+  const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~0.0.1";';
   await testUdd(contents, expected);
 });
 
 Deno.test(async function uddFakeregistryLtToken() {
-  const contents =
-    'import "https://fakeregistry.com/foo@0.0.1/mod.ts#<0.1.0";';
-  const expected =
-    'import "https://fakeregistry.com/foo@0.0.2/mod.ts#<0.1.0";';
+  const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#<0.1.0";';
+  const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#<0.1.0";';
   await testUdd(contents, expected);
 });
 
@@ -136,13 +130,13 @@ import { bar } from "https://fakeregistry.com/foo@0.0.1/bar.ts#=";
   const results = await testUdd(
     contents,
     expected,
-    [FakeRegistry, FakeDenoStd]
+    [FakeRegistry, FakeDenoStd],
   );
   assertEquals(4, results.length);
   // the ordering is a little weird...
   // (it corresponds to the order passed registries)
   // FIXME make less fragile by improving search.ts to provide urls in order
-  assertEquals([true, undefined, true, true], results.map(x => x.success));
+  assertEquals([true, undefined, true, true], results.map((x) => x.success));
 });
 
 Deno.test(async function uddFakeregistryFragmentMove() {

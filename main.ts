@@ -11,7 +11,7 @@ function testsThunk(tests: string[]): () => Promise<void> {
       const p = Deno.run({
         args: t.split(" "),
         stdout: "piped",
-        stderr: "piped"
+        stderr: "piped",
       });
       const success = (await p.status()).success;
       if (!success) {
@@ -69,7 +69,7 @@ async function main(args: string[]) {
     await thunk();
   } catch {
     console.error(
-      colors.red("Tests failed prior to updating any dependencies")
+      colors.red("Tests failed prior to updating any dependencies"),
     );
     Deno.exit(1);
   }
@@ -86,7 +86,7 @@ async function main(args: string[]) {
 
   // TODO perhaps a table would be a nicer output?
 
-  const alreadyLatest = results.filter(x => x.message === undefined);
+  const alreadyLatest = results.filter((x) => x.message === undefined);
   if (alreadyLatest.length > 0) {
     console.log(colors.bold("\nAlready latest version:"));
     for (const a of alreadyLatest) {
@@ -94,24 +94,24 @@ async function main(args: string[]) {
     }
   }
 
-  const successes = results.filter(x => x.success === true);
+  const successes = results.filter((x) => x.success === true);
   if (successes.length > 0) {
     console.log(
       colors.bold(
-        options.dryRun ? "\nAble to update:" : "\nSuccessfully updated:"
-      )
+        options.dryRun ? "\nAble to update:" : "\nSuccessfully updated:",
+      ),
     );
     for (const s of successes) {
       console.log(colors.green(s.initUrl), s.initVersion, "->", s.message);
     }
   }
 
-  const failures = results.filter(x => x.success === false);
+  const failures = results.filter((x) => x.success === false);
   if (failures.length > 0) {
     console.log(
       colors.bold(
-        options.dryRun ? "\nUnable to update:" : "\nFailed to update:"
-      )
+        options.dryRun ? "\nUnable to update:" : "\nFailed to update:",
+      ),
     );
     for (const f of failures) {
       console.log(colors.red(f.initUrl), f.initVersion, "->", f.message);

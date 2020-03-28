@@ -8,7 +8,7 @@ import { REGISTRIES, RegistryUrl, lookup } from "./registry.ts";
 
 export async function udd(
   filename: string,
-  options: UddOptions
+  options: UddOptions,
 ): Promise<UddResult[]> {
   const u = new Udd(filename, options);
   return await u.run();
@@ -41,7 +41,7 @@ export class Udd {
 
   constructor(
     filename: string,
-    options: UddOptions
+    options: UddOptions,
   ) {
     this.filename = filename;
     this.options = options;
@@ -73,7 +73,7 @@ export class Udd {
   }
 
   async update(
-    url: RegistryUrl
+    url: RegistryUrl,
   ): Promise<UddResult> {
     const initUrl: string = url.url;
     const initVersion: string = url.version();
@@ -87,8 +87,8 @@ export class Udd {
     // FIXME warn that the version modifier is moved to a fragment...
     // if the version includes a modifier we move it to the fragment
     if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
-      newFragmentToken = initVersion[0]
-      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`
+      newFragmentToken = initVersion[0];
+      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
     }
 
     // if we pass a fragment with semver
@@ -101,7 +101,7 @@ export class Udd {
           initUrl,
           initVersion,
           success: false,
-          message: e.message
+          message: e.message,
         };
       } else {
         throw e;
@@ -110,15 +110,15 @@ export class Udd {
 
     // potentially we can shortcut if fragment is #=${url.version()}...
     if (filter !== undefined) {
-      const compatible: string[] = versions.map(semver).filter(x =>
+      const compatible: string[] = versions.map(semver).filter((x) =>
         x !== undefined
-      ).map(x => x!).filter(filter).map(x => x.version);
+      ).map((x) => x!).filter(filter).map((x) => x.version);
       if (compatible.length === 0) {
         return {
           initUrl,
           initVersion,
           success: false,
-          message: "no compatible version found"
+          message: "no compatible version found",
         };
       }
       newVersion = compatible[0];
@@ -133,12 +133,14 @@ export class Udd {
     const failed: boolean = await this.maybeReplace(url, newVersion, initUrl);
     const msg = failed ? "failed" : "successful";
     await this.progress.log(`Update ${msg}: ${url.url} -> ${newVersion}`);
-    const maybeFragment = newFragmentToken === undefined ? "" : `#${newFragmentToken}`;
+    const maybeFragment = newFragmentToken === undefined
+      ? ""
+      : `#${newFragmentToken}`;
     return {
       initUrl,
       initVersion,
       message: newVersion + colors.yellow(maybeFragment),
-      success: !failed
+      success: !failed,
     };
   }
 
@@ -146,12 +148,12 @@ export class Udd {
   async maybeReplace(
     url: RegistryUrl,
     newVersion: string,
-    initUrl: string
+    initUrl: string,
   ): Promise<boolean> {
     const newUrl = url.at(newVersion).url;
     await this.replace(initUrl, newUrl);
 
-    const failed = await this.test().then(_ => false).catch(_ => true);
+    const failed = await this.test().then((_) => false).catch((_) => true);
     if (failed || this.options.dryRun) {
       await this.replace(newUrl, initUrl);
     }
