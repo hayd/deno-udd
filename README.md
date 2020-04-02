@@ -53,7 +53,7 @@ If you append a fragment `#${token}${version}` to your urls you can manage their
 | Token | Name | udd updates to the latest version such that |
 | :---  | :--- |     ---: |
 | ^ | Compatible    | major version is the same (if major=0 then same minor version) |
-| ~ | Approximately | major and minor version are the same |
+| ~ | Approximately | major and minor version are the same (or both major=0) |
 | < | Less than     | less than the provided version |
 | = | Equal         | it's exactly this version |
 
