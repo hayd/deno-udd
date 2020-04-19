@@ -9,7 +9,7 @@ function testsThunk(tests: string[]): () => Promise<void> {
       // FIXME is there a better way to split / pass arrays?
       // This fails if you wanted to pass e.g. --foo="a b"
       const p = Deno.run({
-        args: t.split(" "),
+        cmd: t.split(" "),
         stdout: "piped",
         stderr: "piped",
       });
@@ -50,7 +50,7 @@ async function main(args: string[]) {
     return help();
   }
 
-  const depFiles: string[] = a._;
+  const depFiles: string[] = a._.map(x => x.toString());
 
   if (depFiles.length === 0) {
     help();
