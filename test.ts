@@ -5,7 +5,7 @@ import {
   FakeDenoStd,
   assert,
   assertEquals,
-  assertThrowsAsync
+  assertThrowsAsync,
 } from "./test_deps.ts";
 
 async function testUdd(

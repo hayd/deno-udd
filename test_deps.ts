@@ -5,7 +5,7 @@ export {
   assert,
   assertEquals,
   assertThrows,
-  assertThrowsAsync
+  assertThrowsAsync,
 } from "https://deno.land/std@v0.36.0/testing/asserts.ts";
 
 export class FakeRegistry implements RegistryUrl {
