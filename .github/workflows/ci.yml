@@ -8,5 +8,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: denolib/setup-deno@v1.2.0
         with:
-          deno-version: 0.38.0
+          deno-version: 0.42.0
       - run: deno test --allow-write

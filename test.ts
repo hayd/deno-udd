@@ -29,13 +29,13 @@ async function testUdd(
   }
 }
 
-Deno.test(async function uddFakeregistry() {
+Deno.test("uddFakeregistry", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryNotFound() {
+Deno.test("uddFakeregistryNotFound", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.3/mod.ts#=";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.3/mod.ts#=";';
   const results = await testUdd(contents, expected);
@@ -44,31 +44,31 @@ Deno.test(async function uddFakeregistryNotFound() {
   assertEquals("no compatible version found", results[0].message);
 });
 
-Deno.test(async function uddFakeDenolandStd() {
+Deno.test("uddFakeDenolandStd", async () => {
   const contents = 'import "https://deno.land/std@0.34.0/mod.ts";';
   const expected = 'import "https://deno.land/std@0.35.0/mod.ts";';
   await testUdd(contents, expected, [FakeDenoStd]);
 });
 
-Deno.test(async function uddFakeregistryEqToken() {
+Deno.test("uddFakeregistryEqToken", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=0.0.1";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=0.0.1";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryTildeToken() {
+Deno.test("uddFakeregistryTildeToken", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#~0.0.1";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~0.0.1";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryLtToken() {
+Deno.test("uddFakeregistryLtToken", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#<0.1.0";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#<0.1.0";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryLtTokenSpaces() {
+Deno.test("uddFakeregistryLtTokenSpaces", async () => {
   const contents =
     'import "https://fakeregistry.com/foo@0.0.1/mod.ts# < 0.1.0";';
   const expected =
@@ -76,7 +76,7 @@ Deno.test(async function uddFakeregistryLtTokenSpaces() {
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryInvalidFragmentSemver() {
+Deno.test("uddFakeregistryInvalidFragmentSemver", async () => {
   const contents =
     'import "https://fakeregistry.com/foo@0.0.1/mod.ts# < 0.1.b";';
   const expected =
@@ -87,7 +87,7 @@ Deno.test(async function uddFakeregistryInvalidFragmentSemver() {
   assertEquals(results[0].message, "invalid semver version: 0.1.b");
 });
 
-Deno.test(async function uddFakeregistryInvalidFragmentFoo() {
+Deno.test("uddFakeregistryInvalidFragmentFoo", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#foo";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#foo";';
   const results = await testUdd(contents, expected);
@@ -96,25 +96,25 @@ Deno.test(async function uddFakeregistryInvalidFragmentFoo() {
   assertEquals(results[0].message, "invalid semver fragment: foo");
 });
 
-Deno.test(async function uddFakeregistryEq() {
+Deno.test("uddFakeregistryEq", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryTilde() {
+Deno.test("uddFakeregistryTilde", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#~";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryCaret() {
+Deno.test("uddFakeregistryCaret", async () => {
   const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#^";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#^";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeMultiple() {
+Deno.test("uddFakeMultiple", async () => {
   const contents = `
 import "https://deno.land/std@0.34.0/mod.ts";
 import "https://deno.land/std@0.34.0/foo.ts";
@@ -139,13 +139,13 @@ import { bar } from "https://fakeregistry.com/foo@0.0.1/bar.ts#=";
   assertEquals([true, undefined, true, true], results.map((x) => x.success));
 });
 
-Deno.test(async function uddFakeregistryFragmentMove() {
+Deno.test("uddFakeregistryFragmentMove", async () => {
   const contents = 'import "https://fakeregistry.com/foo@~0.0.1/mod.ts";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~";';
   await testUdd(contents, expected);
 });
 
-Deno.test(async function uddFakeregistryFragmentMoveEq() {
+Deno.test("uddFakeregistryFragmentMoveEq", async () => {
   const contents = 'import "https://fakeregistry.com/foo@=0.0.1/mod.ts";';
   const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=";';
   await testUdd(contents, expected);

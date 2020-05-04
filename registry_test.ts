@@ -1,7 +1,7 @@
 import { REGISTRIES, lookup } from "./registry.ts";
 import { assert, assertEquals, FakeRegistry } from "./test_deps.ts";
 
-Deno.test(function registryFakeregistry() {
+Deno.test("registryFakeregistry", () => {
   const url = "https://fakeregistry.com/foo@0.0.1/mod.ts";
   const v = lookup(url, [FakeRegistry]);
   assert(v !== undefined);
@@ -9,13 +9,13 @@ Deno.test(function registryFakeregistry() {
   assertEquals(vAt.url, "https://fakeregistry.com/foo@0.0.2/mod.ts");
 });
 
-Deno.test(function registryFakeregistryMissing() {
+Deno.test("registryFakeregistryMissing", () => {
   const url = "https://fakeregistry.com/foo@0.0.1/mod.ts";
   const v = lookup(url, REGISTRIES);
   assert(v === undefined);
 });
 
-Deno.test(function registryDenolandStd() {
+Deno.test("registryDenolandStd", () => {
   const url = "https://deno.land/std@0.35.0/foo.ts";
   const v = lookup(url, REGISTRIES);
   assert(v !== undefined);
@@ -24,7 +24,7 @@ Deno.test(function registryDenolandStd() {
   assertEquals(vAt.url, "https://deno.land/std@0.1.0/foo.ts");
 });
 
-Deno.test(function registryDenolandX() {
+Deno.test("registryDenolandX", () => {
   const url = "https://deno.land/x/foo@0.1.0/foo.ts";
   const v = lookup(url, REGISTRIES);
   assert(v !== undefined);
