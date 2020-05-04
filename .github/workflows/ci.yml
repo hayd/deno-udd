@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: denolib/setup-deno@v1.2.0
+      - uses: denolib/setup-deno@master
         with:
-          deno-version: 0.38.0
+          deno-version: 0.42.0
       - run: deno test --allow-write

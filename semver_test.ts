@@ -1,35 +1,35 @@
 import { Semver } from "./semver.ts";
 import { assert, assertEquals, assertThrows } from "./test_deps.ts";
 
-Deno.test(function semver() {
+Deno.test("semver", () => {
   const v = new Semver("1.0.2");
   assertEquals(v.major, 1);
   assertEquals(v.minor, 0);
   assertEquals(v.patch, 2);
 });
 
-Deno.test(function semverEq() {
+Deno.test("semverEq", () => {
   const v1 = new Semver("1.0.2");
   assert(v1.eq(v1));
 });
 
-Deno.test(function SemverLt() {
+Deno.test("SemverLt", () => {
   const v1 = new Semver("1.0.2");
   const v2 = new Semver("1.0.3");
   assert(v1.lt(v2));
 });
 
-Deno.test(function semverTilde() {
+Deno.test("semverTilde", () => {
   const v1 = new Semver("1.0.2");
   const v2 = new Semver("1.0.3");
   assert(v1.tilde(v2));
 });
 
-Deno.test(function semverBad() {
+Deno.test("semverBad", () => {
   assertThrows(() => new Semver("bad.0.2"));
 });
 
-Deno.test(function semverToken() {
+Deno.test("semverToken", () => {
   const v1 = new Semver("1.0.2");
   const v2 = new Semver("1.0.3");
   assert(v1._("<", v2));

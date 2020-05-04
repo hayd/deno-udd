@@ -50,7 +50,7 @@ async function main(args: string[]) {
     return help();
   }
 
-  const depFiles: string[] = a._.map(x => x.toString());
+  const depFiles: string[] = a._.map((x) => x.toString());
 
   if (depFiles.length === 0) {
     help();
