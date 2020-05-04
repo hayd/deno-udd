@@ -23,7 +23,7 @@ are _purely_ a convenience for the maintainer, and do not affect users.
 Use deno [`install`](https://deno.land/std/manual.md#installing-executable-scripts) command:
 
 ```sh
-deno install -A -f udd https://deno.land/x/udd@0.1.3/main.ts
+deno install -A -f udd https://deno.land/x/udd@0.1.4/main.ts
 ```
 _You may need to include the deno bin directory in your PATH._
 
