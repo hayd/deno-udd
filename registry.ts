@@ -143,7 +143,10 @@ export class DenoStd implements RegistryUrl {
   }
 
   async all(): Promise<string[]> {
-    return await githubReleases("denoland", "deno");
+    const denoReleases = await githubReleases("denoland", "deno");
+    return denoReleases
+      .filter((x) => x.startsWith("std/"))
+      .map((x) => "v" + x.split("/")[1])
   }
 
   at(version: string): RegistryUrl {
