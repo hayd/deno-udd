@@ -87,6 +87,8 @@ udd supports the following registry domains:
 - https://dev.jspm.io
 - https://cdn.pika.dev
 - https://unpkg.com
+- https://raw.githubusercontent.com
+- https://gitlab.com/:user/:repo/-/raw
 
 _Create an issue to request additional registries._
 
