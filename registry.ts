@@ -1,9 +1,9 @@
-// FIXME don't use any[]
-export function lookup(url: string, registries: any[]):
+type RegistryCtor = new (url: string) => RegistryUrl;
+export function lookup(url: string, registries: RegistryCtor[]):
   | RegistryUrl
   | undefined {
   for (const R of registries) {
-    const u = new R(url) as RegistryUrl;
+    const u = new R(url);
     if (u.regexp.test(url)) {
       return u;
     }
@@ -42,80 +42,52 @@ export function defaultName(that: RegistryUrl): string {
   return n[1];
 }
 
-// Link header format: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Link
-function parseLinkHeader(res: Response): Record<string, string> {
-  const linkMap: Record<string, string> = {}
-  const headerValue = res.headers.get("link");
-  if (headerValue == null) {
-    return linkMap;
+async function githubDownloadReleases(
+  owner: string,
+  repo: string,
+  lastVersion: string | undefined = undefined,
+): Promise<string[]> {
+  let url = `https://github.com/${owner}/${repo}/releases.atom`;
+  if (lastVersion) {
+    url += `?after=${lastVersion}`;
   }
+  // FIXME do we need to handle 404?
 
-  const links = headerValue.split(",");
-  for (const link of links) {
-    const match = link.match(/<(.+)>; rel="(.+)"/);
-    if (match) {
-      linkMap[match[2]] = match[1];
-    }
-  }
-  return linkMap;
+  const page = await fetch(url);
+  const text = await page.text();
+  return [
+    ...text.matchAll(
+      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g,
+    ),
+  ].map((x) => x[1]);
 }
 
 // export for testing purposes
 // FIXME this should really be lazy, we shouldn't always iterate everything...
-export const CACHE: Map<string, string[]> = new Map<string, string[]>();
-async function fetchReleases(
-  url: string,
-  cacheKey: string,
-  cache: Map<string, string[]>
+export const GR_CACHE: Map<string, string[]> = new Map<string, string[]>();
+async function githubReleases(
+  owner: string,
+  repo: string,
+  cache: Map<string, string[]> = GR_CACHE,
 ): Promise<string[]> {
+  const cacheKey = `${owner}/${repo}`;
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
   }
-
-  // FIXME do we need to handle 404?
-  let res = await fetch(url);
-  let links = parseLinkHeader(res);
-  let tags: { name: string }[] = await res.json();
-  console.log(tags.length, "tags");
-  const versions = tags.map(tag => tag.name);
-
-  // arbitrarily fetch only 3 pages
-  let i = 0;
-  while (links.next && i < 3) {
-    res = await fetch(links.next);
-    tags = await res.json();
-    links = parseLinkHeader(res);
-    versions.push(...tags.map(tag => tag.name));
+  const versions = await githubDownloadReleases(owner, repo);
+  if (versions.length === 10) {
+    let lastVersion: string | undefined = undefined;
+    // arbitrarily we're going to limit to 5 pages...?
+    let i: number = 0;
+    while (lastVersion !== versions[versions.length - 1] && i < 5) {
+      i++;
+      lastVersion = versions[versions.length - 1];
+      versions.push(...await githubDownloadReleases(owner, repo, lastVersion));
+    }
   }
-
   cache.set(cacheKey, versions);
   return versions;
 }
-
-function githubReleases(
-  owner: string,
-  repo: string,
-  cache: Map<string, string[]> = CACHE,
-): Promise<string[]> {
-  return fetchReleases(
-    `https://api.github.com/repos/${owner}/${repo}/tags`,
-    `github:${owner}/${repo}`,
-    cache,
-  );
-}
-
-function gitlabReleases(
-  owner: string,
-  repo: string,
-  cache: Map<string, string[]> = CACHE,
-): Promise<string[]> {
-  return fetchReleases(
-    `https://gitlab.com/api/v4/projects/${owner}%2F${repo}/repository/tags`,
-    `gitlab:${owner}/${repo}`,
-    cache,
-  );
-}
-
 
 let denoLandDB: any;
 
@@ -341,6 +313,49 @@ export class GithubRaw implements RegistryUrl {
   regexp: RegExp = /https?:\/\/raw\.githubusercontent\.com\/[^\/\"\']+\/[^\/\"\']+\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
+async function gitlabDownloadReleases(
+  owner: string,
+  repo: string,
+  page: number,
+): Promise<string[]> {
+  const url = `https://gitlab.com/${owner}/${repo}/-/tags?format=atom&page=${page}`
+
+  const text = await (await fetch(url)).text();
+  return [
+    ...text.matchAll(
+      /\<id\>https\:\/\/gitlab.com.+\/-\/tags\/(.+?)\<\/id\>/g,
+    ),
+  ].map((x) => x[1]);
+}
+
+// export for testing purposes
+// FIXME this should really be lazy, we shouldn't always iterate everything...
+export const GL_CACHE: Map<string, string[]> = new Map<string, string[]>();
+async function gitlabReleases(
+  owner: string,
+  repo: string,
+  cache: Map<string, string[]> = GL_CACHE,
+): Promise<string[]> {
+  const cacheKey = `${owner}/${repo}`;
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey)!;
+  }
+  // to roughly match GitHub above (5 pages, 10 releases each), we'll
+  // limit to 3 pages, 20 releases each
+  let i = 1;
+  const versions = await gitlabDownloadReleases(owner, repo, i);
+  if (versions.length === 20) {
+    let lastVersion: string | undefined = undefined;
+    while (lastVersion !== versions[versions.length - 1] && i <= 3) {
+      i++;
+      lastVersion = versions[versions.length - 1];
+      versions.push(...await gitlabDownloadReleases(owner, repo, i));
+    }
+  }
+  cache.set(cacheKey, versions);
+  return versions;
+}
+
 export class GitlabRaw implements RegistryUrl {
   url: string;
 
@@ -355,7 +370,7 @@ export class GitlabRaw implements RegistryUrl {
 
   at(version: string): RegistryUrl {
     const parts = this.url.split("/");
-    parts[5] = version;
+    parts[7] = version;
     return new GithubRaw(parts.join("/"));
   }
 
