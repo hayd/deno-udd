@@ -1,4 +1,4 @@
-import { RegistryUrl } from "./registry.ts";
+import { RegistryCtor } from "./registry.ts";
 
 // FIXME use deno info once it has json output?
 
@@ -7,7 +7,7 @@ import { RegistryUrl } from "./registry.ts";
 // import "https?://deno.land/(std|x)@([^/"]?)/.*?"
 // import { foo, bar } from "https?://deno.land/(std|x)@([^/"]?)/.*?"
 
-export function importUrls(tsContent: string, registries: any[]): string[] {
+export function importUrls(tsContent: string, registries: RegistryCtor[]): string[] {
   // look up all the supported regex matches.
   const rs: RegExp[] = registries.map((R) => new R("").regexp).map((re) =>
     new RegExp(re, "g")

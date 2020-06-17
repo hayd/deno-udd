@@ -1,5 +1,6 @@
 import { udd, UddOptions, UddResult } from "./mod.ts";
 import { decode, encode } from "./deps.ts";
+import { RegistryCtor } from './registry.ts'
 import {
   FakeRegistry,
   FakeDenoStd,
@@ -11,7 +12,7 @@ import {
 async function testUdd(
   before: string,
   after: string,
-  registries: any[] = [FakeRegistry],
+  registries: RegistryCtor[] = [FakeRegistry],
 ) {
   const fn = await Deno.makeTempFile();
   try {
