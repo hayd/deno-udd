@@ -1,4 +1,4 @@
-type RegistryCtor = new (url: string) => RegistryUrl;
+export type RegistryCtor = new (url: string) => RegistryUrl;
 export function lookup(url: string, registries: RegistryCtor[]):
   | RegistryUrl
   | undefined {
@@ -89,7 +89,12 @@ async function githubReleases(
   return versions;
 }
 
-let denoLandDB: any;
+interface DenoLandDBEntry {
+  type: string;
+  owner: string;
+  repo: string;
+}
+let denoLandDB: Record<string, DenoLandDBEntry>;
 
 export class DenoLand implements RegistryUrl {
   url: string;
@@ -108,7 +113,7 @@ export class DenoLand implements RegistryUrl {
         "https://raw.githubusercontent.com/denoland/deno_website2/master/database.json";
       denoLandDB = await (await fetch(dbUrl)).json();
     }
-    let res: any;
+    let res: DenoLandDBEntry;
     try {
       res = denoLandDB[this.name()];
     } catch {

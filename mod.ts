@@ -2,7 +2,7 @@ import { decode, encode, colors } from "./deps.ts";
 import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
 import { Semver, fragment, semver } from "./semver.ts";
-import { REGISTRIES, RegistryUrl, lookup } from "./registry.ts";
+import { REGISTRIES, RegistryCtor, RegistryUrl, lookup } from "./registry.ts";
 
 // FIXME we should catch ctrl-c etc. and write back the original deps.ts
 
@@ -22,7 +22,7 @@ export interface UddOptions {
   // if this function errors then the update is reverted
   test?: () => Promise<void>;
 
-  _registries?: any[];
+  _registries?: RegistryCtor[];
 }
 
 export interface UddResult {
@@ -37,7 +37,7 @@ export class Udd {
   private test: () => Promise<void>;
   private options: UddOptions;
   private progress: Progress;
-  private registries: any[];
+  private registries: RegistryCtor[];
 
   constructor(
     filename: string,
