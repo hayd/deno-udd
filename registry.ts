@@ -318,6 +318,46 @@ export class GithubRaw implements RegistryUrl {
   regexp: RegExp = /https?:\/\/raw\.githubusercontent\.com\/[^\/\"\']+\/[^\/\"\']+\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
+export class JsDelivr implements RegistryUrl {
+  url: string;
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  parts(): { parts: string[]; repo: string; user: string; version: string } {
+    const parts = this.url.split("/");
+    const [repo, version] = parts[5].split("@");
+    return {
+      user: parts[4],
+      repo,
+      version,
+      parts,
+    };
+  }
+
+  all(): Promise<string[]> {
+    const { user, repo } = this.parts();
+    return githubReleases(user, repo);
+  }
+
+  at(version: string): RegistryUrl {
+    const { parts, repo } = this.parts();
+    parts[5] = `${repo}@${version}`;
+    return new GithubRaw(parts.join("/"));
+  }
+
+  version(): string {
+    const { version } = this.parts();
+    if (version === undefined) {
+      throw Error(`Unable to find version in ${this.url}`);
+    }
+    return version;
+  }
+
+  regexp: RegExp = /https?:\/\/cdn\.jsdelivr\.net\/gh\/[^\/\"\']+\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
+}
+
 async function gitlabDownloadReleases(
   owner: string,
   repo: string,
@@ -390,4 +430,65 @@ export class GitlabRaw implements RegistryUrl {
   regexp: RegExp = /https?:\/\/gitlab\.com\/[^\/\"\']+\/[^\/\"\']+\/-\/raw\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
-export const REGISTRIES = [DenoStd, DenoLand, Unpkg, Denopkg, Jspm, Pika, GithubRaw, GitlabRaw];
+interface NestLandResponse {
+  // a list of names of the form "<repo>@<version>"
+  packageUploadNames?: string[];
+}
+
+const NL_CACHE: Map<string, string[]> = new Map<string, string[]>();
+async function nestlandReleases(
+  repo: string,
+  cache: Map<string, string[]> = NL_CACHE,
+): Promise<string[]> {
+  if (cache.has(repo)) {
+    return cache.get(repo)!;
+  }
+
+  const url = `https://x.nest.land/api/package/${repo}`;
+  const { packageUploadNames }: NestLandResponse = await (await fetch(url)).json();
+
+  if (!packageUploadNames) {
+    return [];
+  }
+
+  // reverse so newest versions are first
+  return packageUploadNames.map(name => name.split("@")[1]).reverse();
+}
+
+
+export class NestLand implements RegistryUrl {
+  url: string;
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  all(): Promise<string[]> {
+    const parts = this.url.split("/") ;
+    return nestlandReleases(parts[3].split("@")[0]);
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultAt(this, version);
+    return new NestLand(url);
+  }
+
+  version(): string {
+    return defaultVersion(this);
+  }
+
+  regexp: RegExp = /https?:\/\/x\.nest\.land\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
+}
+
+export const REGISTRIES = [
+  DenoStd,
+  DenoLand,
+  Unpkg,
+  Denopkg,
+  Jspm,
+  Pika,
+  GithubRaw,
+  GitlabRaw,
+  JsDelivr,
+  NestLand,
+];
