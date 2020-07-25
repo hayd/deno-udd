@@ -89,3 +89,21 @@ Deno.test("registryGitlabRaw", () => {
   const vAt = v.at("0.2.0");
   assertEquals(vAt.url, "https://gitlab.com/bar/foo/-/raw/0.2.0/foo.ts");
 });
+
+Deno.test("registryJsDelivr", () => {
+  const url = "https://cdn.jsdelivr.net/gh/bar/foo@0.1.0/foo.ts";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://cdn.jsdelivr.net/gh/bar/foo@0.2.0/foo.ts");
+});
+
+Deno.test("registryNestLand", () => {
+  const url = "https://x.nest.land/foo@0.1.0/foo.ts";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://x.nest.land/foo@0.2.0/foo.ts");
+});
