@@ -23,7 +23,7 @@ are _purely_ a convenience for the maintainer, and do not affect users.
 Use deno [`install`](https://deno.land/std/manual.md#installing-executable-scripts) command:
 
 ```sh
-deno install -A -f -n udd https://deno.land/x/udd@0.2.0/main.ts
+deno install -A -f -n udd https://deno.land/x/udd@0.3.0/main.ts
 ```
 _You may need to include the deno bin directory in your PATH._
 
@@ -89,6 +89,8 @@ udd supports the following registry domains:
 - https://unpkg.com
 - https://raw.githubusercontent.com
 - https://gitlab.com/:user/:repo/-/raw
+- https://cdn.jsdelivr.net
+- https://x.nest.land
 
 _Create an issue to request additional registries._
 
