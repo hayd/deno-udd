@@ -89,13 +89,12 @@ async function githubReleases(
   return versions;
 }
 
-interface DenoLandDBEntry {
-  type: string;
-  owner: string;
-  repo: string;
+interface VersionsJson {
+  latest?: string;
+  versions?: string[];
 }
-let denoLandDB: Record<string, DenoLandDBEntry>;
 
+const DL_CACHE: Map<string, string[]> = new Map<string, string[]>();
 export class DenoLand implements RegistryUrl {
   url: string;
 
@@ -104,28 +103,32 @@ export class DenoLand implements RegistryUrl {
   }
 
   name(): string {
-    return defaultName(this);
+    const [, stdGroup, xGroup] = this.url.match(
+      /deno\.land\/(?:(std)|x\/([^/@]*))/,
+    )!;
+
+    return stdGroup ?? xGroup;
   }
 
   async all(): Promise<string[]> {
-    if (!denoLandDB) {
-      const dbUrl =
-        "https://raw.githubusercontent.com/denoland/deno_website2/master/database.json";
-      denoLandDB = await (await fetch(dbUrl)).json();
+    const name = this.name();
+    if (DL_CACHE.has(name)) {
+      return DL_CACHE.get(name)!;
     }
-    let res: DenoLandDBEntry;
+
     try {
-      res = denoLandDB[this.name()];
+      const json: VersionsJson =
+        await (await fetch(`https://cdn.deno.land/${name}/meta/versions.json`))
+          .json();
+      if (!json.versions) {
+        throw new Error(`versions.json for ${name} has incorrect format`);
+      }
+
+      DL_CACHE.set(name, json.versions);
+      return json.versions;
     } catch {
-      throw new Error(`${this.name()} not found in deno land json`);
+      throw new Error(`error getting versions for ${name}`);
     }
-
-    const { type, owner, repo } = res;
-    if (type !== "github") {
-      throw new Error(`${this.name()} has unsupported type ${type}`);
-    }
-
-    return await githubReleases(owner, repo);
   }
 
   at(version: string): RegistryUrl {
@@ -137,33 +140,8 @@ export class DenoLand implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp = /https?:\/\/deno.land\/x\/[^\/\"\']*?\@[^\'\"]*/;
-}
-
-export class DenoStd implements RegistryUrl {
-  url: string;
-
-  constructor(url: string) {
-    this.url = url;
-  }
-
-  async all(): Promise<string[]> {
-    const denoReleases = await githubReleases("denoland", "deno");
-    return denoReleases
-      .filter((x) => x.startsWith("std/"))
-      .map((x) => "v" + x.split("/")[1])
-  }
-
-  at(version: string): RegistryUrl {
-    const url = defaultAt(this, version);
-    return new DenoStd(url);
-  }
-
-  version(): string {
-    return defaultVersion(this);
-  }
-
-  regexp: RegExp = /https?:\/\/deno.land\/std\@[^\'\"]*/;
+  regexp: RegExp =
+    /https?:\/\/deno.land\/(?:std\@[^\'\"]*|x\/[^\/\"\']*?\@[^\'\"]*)/;
 }
 
 async function unpkgVersions(name: string): Promise<string[]> {
@@ -297,7 +275,7 @@ export class GithubRaw implements RegistryUrl {
   }
 
   all(): Promise<string[]> {
-    const [,,, user, repo] = this.url.split("/") ;
+    const [, , , user, repo] = this.url.split("/");
     return githubReleases(user, repo);
   }
 
@@ -315,7 +293,8 @@ export class GithubRaw implements RegistryUrl {
     return v;
   }
 
-  regexp: RegExp = /https?:\/\/raw\.githubusercontent\.com\/[^\/\"\']+\/[^\/\"\']+\/(?!master)[^\/\"\']+\/[^\'\"]*/;
+  regexp: RegExp =
+    /https?:\/\/raw\.githubusercontent\.com\/[^\/\"\']+\/[^\/\"\']+\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
 export class JsDelivr implements RegistryUrl {
@@ -355,7 +334,8 @@ export class JsDelivr implements RegistryUrl {
     return version;
   }
 
-  regexp: RegExp = /https?:\/\/cdn\.jsdelivr\.net\/gh\/[^\/\"\']+\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
+  regexp: RegExp =
+    /https?:\/\/cdn\.jsdelivr\.net\/gh\/[^\/\"\']+\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
 async function gitlabDownloadReleases(
@@ -363,7 +343,8 @@ async function gitlabDownloadReleases(
   repo: string,
   page: number,
 ): Promise<string[]> {
-  const url = `https://gitlab.com/${owner}/${repo}/-/tags?format=atom&page=${page}`
+  const url =
+    `https://gitlab.com/${owner}/${repo}/-/tags?format=atom&page=${page}`;
 
   const text = await (await fetch(url)).text();
   return [
@@ -409,7 +390,7 @@ export class GitlabRaw implements RegistryUrl {
   }
 
   all(): Promise<string[]> {
-    const [,,, user, repo] = this.url.split("/") ;
+    const [, , , user, repo] = this.url.split("/");
     return gitlabReleases(user, repo);
   }
 
@@ -427,7 +408,8 @@ export class GitlabRaw implements RegistryUrl {
     return v;
   }
 
-  regexp: RegExp = /https?:\/\/gitlab\.com\/[^\/\"\']+\/[^\/\"\']+\/-\/raw\/(?!master)[^\/\"\']+\/[^\'\"]*/;
+  regexp: RegExp =
+    /https?:\/\/gitlab\.com\/[^\/\"\']+\/[^\/\"\']+\/-\/raw\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
 interface NestLandResponse {
@@ -445,16 +427,16 @@ async function nestlandReleases(
   }
 
   const url = `https://x.nest.land/api/package/${repo}`;
-  const { packageUploadNames }: NestLandResponse = await (await fetch(url)).json();
+  const { packageUploadNames }: NestLandResponse = await (await fetch(url))
+    .json();
 
   if (!packageUploadNames) {
     return [];
   }
 
   // reverse so newest versions are first
-  return packageUploadNames.map(name => name.split("@")[1]).reverse();
+  return packageUploadNames.map((name) => name.split("@")[1]).reverse();
 }
-
 
 export class NestLand implements RegistryUrl {
   url: string;
@@ -464,7 +446,7 @@ export class NestLand implements RegistryUrl {
   }
 
   all(): Promise<string[]> {
-    const parts = this.url.split("/") ;
+    const parts = this.url.split("/");
     return nestlandReleases(parts[3].split("@")[0]);
   }
 
@@ -477,11 +459,11 @@ export class NestLand implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp = /https?:\/\/x\.nest\.land\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
+  regexp: RegExp =
+    /https?:\/\/x\.nest\.land\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
 export const REGISTRIES = [
-  DenoStd,
   DenoLand,
   Unpkg,
   Denopkg,

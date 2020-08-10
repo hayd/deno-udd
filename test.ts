@@ -1,9 +1,9 @@
 import { udd, UddOptions, UddResult } from "./mod.ts";
 import { decode, encode } from "./deps.ts";
-import { RegistryCtor } from './registry.ts'
+import { RegistryCtor } from "./registry.ts";
 import {
   FakeRegistry,
-  FakeDenoStd,
+  FakeDenoLand,
   assert,
   assertEquals,
   assertThrowsAsync,
@@ -48,7 +48,7 @@ Deno.test("uddFakeregistryNotFound", async () => {
 Deno.test("uddFakeDenolandStd", async () => {
   const contents = 'import "https://deno.land/std@0.34.0/mod.ts";';
   const expected = 'import "https://deno.land/std@0.35.0/mod.ts";';
-  await testUdd(contents, expected, [FakeDenoStd]);
+  await testUdd(contents, expected, [FakeDenoLand]);
 });
 
 Deno.test("uddFakeregistryEqToken", async () => {
@@ -131,7 +131,7 @@ import { bar } from "https://fakeregistry.com/foo@0.0.1/bar.ts#=";
   const results = await testUdd(
     contents,
     expected,
-    [FakeRegistry, FakeDenoStd],
+    [FakeRegistry, FakeDenoLand],
   );
   assertEquals(4, results.length);
   // the ordering is a little weird...
