@@ -1,5 +1,5 @@
 import { RegistryUrl, defaultAt, defaultVersion } from "./registry.ts";
-import { DenoStd } from "./registry.ts";
+import { DenoLand } from "./registry.ts";
 
 export {
   assert,
@@ -31,7 +31,7 @@ export class FakeRegistry implements RegistryUrl {
   regexp: RegExp = /https?:\/\/fakeregistry.com\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class FakeDenoStd extends DenoStd {
+export class FakeDenoLand extends DenoLand {
   async all(): Promise<string[]> {
     return ["0.35.0", "0.34.0"];
   }
