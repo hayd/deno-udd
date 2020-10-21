@@ -20,10 +20,10 @@ are _purely_ a convenience for the maintainer, and do not affect users.
 
 ## Installation
 
-Use deno [`install`](https://deno.land/std/manual.md#installing-executable-scripts) command:
+Use deno [`install`](https://deno.land/std/manual.md#installing-executable-scripts) to install or update udd:
 
 ```sh
-deno install -A -f -n udd https://deno.land/x/udd@0.3.0/main.ts
+deno install -A -f -n udd https://deno.land/x/udd@0.4.0/main.ts
 ```
 _You may need to include the deno bin directory in your PATH._
 
