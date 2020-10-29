@@ -1,0 +1,10 @@
+{
+    "name": "udd",
+    "description": "Update Deno Dependencies - update dependency urls to their latest published versions",
+    "homepage": "https://github.com/hayd/deno-udd",
+    "files": [
+    "./**/*.ts",
+    "README.md"
+    ],
+    "entry": "./mod.ts"
+}
