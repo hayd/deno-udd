@@ -78,7 +78,7 @@ async function githubReleases(
   if (versions.length === 10) {
     let lastVersion: string | undefined = undefined;
     // arbitrarily we're going to limit to 5 pages...?
-    let i: number = 0;
+    let i = 0;
     while (lastVersion !== versions[versions.length - 1] && i < 5) {
       i++;
       lastVersion = versions[versions.length - 1];
@@ -140,8 +140,7 @@ export class DenoLand implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp =
-    /https?:\/\/deno.land\/(?:std\@[^\'\"]*|x\/[^\/\"\']*?\@[^\'\"]*)/;
+  regexp = /https?:\/\/deno.land\/(?:std\@[^\'\"]*|x\/[^\/\"\']*?\@[^\'\"]*)/;
 }
 
 async function unpkgVersions(name: string): Promise<string[]> {
@@ -177,7 +176,7 @@ export class Unpkg implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
+  regexp = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 export class Jspm implements RegistryUrl {
@@ -204,7 +203,7 @@ export class Jspm implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp = /https?:\/\/dev.jspm.io\/[^\/\"\']*?\@[^\'\"]*/;
+  regexp = /https?:\/\/dev.jspm.io\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 export class Denopkg implements RegistryUrl {
@@ -235,10 +234,8 @@ export class Denopkg implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp = /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
+  regexp = /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
-
-// TODO Pika
 
 export class Pika implements RegistryUrl {
   url: string;
@@ -264,7 +261,7 @@ export class Pika implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp = /https?:\/\/cdn.pika.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
+  regexp = /https?:\/\/cdn.pika.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 export class GithubRaw implements RegistryUrl {
@@ -293,7 +290,7 @@ export class GithubRaw implements RegistryUrl {
     return v;
   }
 
-  regexp: RegExp =
+  regexp =
     /https?:\/\/raw\.githubusercontent\.com\/[^\/\"\']+\/[^\/\"\']+\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
@@ -334,7 +331,7 @@ export class JsDelivr implements RegistryUrl {
     return version;
   }
 
-  regexp: RegExp =
+  regexp =
     /https?:\/\/cdn\.jsdelivr\.net\/gh\/[^\/\"\']+\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
@@ -408,7 +405,7 @@ export class GitlabRaw implements RegistryUrl {
     return v;
   }
 
-  regexp: RegExp =
+  regexp =
     /https?:\/\/gitlab\.com\/[^\/\"\']+\/[^\/\"\']+\/-\/raw\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
@@ -459,7 +456,7 @@ export class NestLand implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp =
+  regexp =
     /https?:\/\/x\.nest\.land\/[^\/\"\']+@(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 

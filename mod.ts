@@ -46,6 +46,7 @@ export class Udd {
     this.filename = filename;
     this.options = options;
     this.registries = options._registries || REGISTRIES;
+    // deno-lint-ignore require-await
     this.test = options.test || (async () => undefined);
     this.progress = options.quiet ? new SilentProgress(1) : new Progress(1);
   }
