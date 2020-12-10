@@ -1,4 +1,4 @@
-import { RegistryUrl, defaultAt, defaultVersion } from "./registry.ts";
+import { defaultAt, defaultVersion, RegistryUrl } from "./registry.ts";
 import { DenoLand } from "./registry.ts";
 
 export {

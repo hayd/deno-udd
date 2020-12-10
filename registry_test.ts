@@ -1,4 +1,4 @@
-import { REGISTRIES, lookup } from "./registry.ts";
+import { lookup, REGISTRIES } from "./registry.ts";
 import { assert, assertEquals, FakeRegistry } from "./test_deps.ts";
 
 Deno.test("registryFakeregistry", () => {

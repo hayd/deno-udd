@@ -2,11 +2,11 @@ import { udd, UddOptions, UddResult } from "./mod.ts";
 import { decode, encode } from "./deps.ts";
 import { RegistryCtor } from "./registry.ts";
 import {
-  FakeRegistry,
-  FakeDenoLand,
   assert,
   assertEquals,
   assertThrowsAsync,
+  FakeDenoLand,
+  FakeRegistry,
 } from "./test_deps.ts";
 
 async function testUdd(

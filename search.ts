@@ -7,7 +7,10 @@ import { RegistryCtor } from "./registry.ts";
 // import "https?://deno.land/(std|x)@([^/"]?)/.*?"
 // import { foo, bar } from "https?://deno.land/(std|x)@([^/"]?)/.*?"
 
-export function importUrls(tsContent: string, registries: RegistryCtor[]): string[] {
+export function importUrls(
+  tsContent: string,
+  registries: RegistryCtor[],
+): string[] {
   // look up all the supported regex matches.
   const rs: RegExp[] = registries.map((R) => new R("").regexp).map((re) =>
     new RegExp(re, "g")

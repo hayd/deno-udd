@@ -1,7 +1,7 @@
 // deno -A main.ts deps.ts --test="deno test"
 
 import { colors, parseArgs } from "./deps.ts";
-import { UddOptions, UddResult, udd } from "./mod.ts";
+import { udd, UddOptions, UddResult } from "./mod.ts";
 
 function testsThunk(tests: string[]): () => Promise<void> {
   return async () => {
