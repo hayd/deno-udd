@@ -1,4 +1,4 @@
-import { RegistryUrl, defaultAt, defaultVersion } from "./registry.ts";
+import { defaultAt, defaultVersion, RegistryUrl } from "./registry.ts";
 import { DenoLand } from "./registry.ts";
 
 export {
@@ -6,7 +6,7 @@ export {
   assertEquals,
   assertThrows,
   assertThrowsAsync,
-} from "https://deno.land/std@0.74.0/testing/asserts.ts";
+} from "https://deno.land/std@0.80.0/testing/asserts.ts";
 
 export class FakeRegistry implements RegistryUrl {
   url: string;
@@ -15,6 +15,7 @@ export class FakeRegistry implements RegistryUrl {
     this.url = url;
   }
 
+  // deno-lint-ignore require-await
   async all(): Promise<string[]> {
     return ["0.0.2", "0.0.1"];
   }
@@ -28,10 +29,11 @@ export class FakeRegistry implements RegistryUrl {
     return defaultVersion(this);
   }
 
-  regexp: RegExp = /https?:\/\/fakeregistry.com\/[^\/\"\']*?\@[^\'\"]*/;
+  regexp = /https?:\/\/fakeregistry.com\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 export class FakeDenoLand extends DenoLand {
+  // deno-lint-ignore require-await
   async all(): Promise<string[]> {
     return ["0.35.0", "0.34.0"];
   }

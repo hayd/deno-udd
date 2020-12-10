@@ -1,8 +1,8 @@
-import { decode, encode, colors } from "./deps.ts";
+import { colors, decode, encode } from "./deps.ts";
 import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
-import { Semver, fragment, semver } from "./semver.ts";
-import { REGISTRIES, RegistryCtor, RegistryUrl, lookup } from "./registry.ts";
+import { fragment, Semver, semver } from "./semver.ts";
+import { lookup, REGISTRIES, RegistryCtor, RegistryUrl } from "./registry.ts";
 
 // FIXME we should catch ctrl-c etc. and write back the original deps.ts
 
@@ -46,6 +46,7 @@ export class Udd {
     this.filename = filename;
     this.options = options;
     this.registries = options._registries || REGISTRIES;
+    // deno-lint-ignore require-await
     this.test = options.test || (async () => undefined);
     this.progress = options.quiet ? new SilentProgress(1) : new Progress(1);
   }
