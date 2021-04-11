@@ -151,3 +151,16 @@ Deno.test("uddFakeregistryFragmentMoveEq", async () => {
   const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=";';
   await testUdd(contents, expected);
 });
+
+Deno.test("uddGitHubRawBranchName", async () => {
+  const contents = `
+import "https://raw.githubusercontent.com/foo/bar/main/mod.ts";
+import "https://raw.githubusercontent.com/foo/bar/main/mod.ts#=";
+`;
+  const expected = `
+import "https://raw.githubusercontent.com/foo/bar/main/mod.ts";
+import "https://raw.githubusercontent.com/foo/bar/main/mod.ts#=";
+`;
+  const results = await testUdd(contents, expected);
+  assertEquals(results.length, 0);
+});

@@ -92,6 +92,14 @@ export class Udd {
       url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
     }
 
+    try {
+      new Semver(url.version());
+    } catch (e) {
+      // probably, the version string is a branch name.
+      await this.progress.log(`Using a branch: ${url.url}`);
+      return { initUrl, initVersion };
+    }
+
     // if we pass a fragment with semver
     let filter: ((other: Semver) => boolean) | undefined = undefined;
     try {
