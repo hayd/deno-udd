@@ -264,6 +264,33 @@ export class Pika implements RegistryUrl {
   regexp = /https?:\/\/cdn.pika.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
+export class Skypack implements RegistryUrl {
+  url: string;
+
+  name(): string {
+    return defaultName(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    return await unpkgVersions(this.name());
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultAt(this, version);
+    return new Skypack(url);
+  }
+
+  version(): string {
+    return defaultVersion(this);
+  }
+
+  regexp = /https?:\/\/cdn.skypack.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
 export class GithubRaw implements RegistryUrl {
   url: string;
 
@@ -466,6 +493,7 @@ export const REGISTRIES = [
   Denopkg,
   Jspm,
   Pika,
+  Skypack,
   GithubRaw,
   GitlabRaw,
   JsDelivr,
