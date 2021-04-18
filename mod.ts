@@ -95,8 +95,8 @@ export class Udd {
     try {
       new Semver(url.version());
     } catch (e) {
-      // probably, the version string is a branch name.
-      await this.progress.log(`Using a branch: ${url.url}`);
+      // The version string is a non-semver string like a branch name.
+      await this.progress.log(`Skip updating: ${url.url}`);
       return { initUrl, initVersion };
     }
 
