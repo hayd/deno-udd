@@ -86,6 +86,7 @@ udd supports the following registry domains:
 - https://denopkg.com
 - https://dev.jspm.io
 - https://cdn.pika.dev
+- https://cdn.skypack.dev
 - https://unpkg.com
 - https://raw.githubusercontent.com
 - https://gitlab.com/:user/:repo/-/raw
