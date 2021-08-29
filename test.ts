@@ -1,5 +1,4 @@
 import { udd, UddOptions, UddResult } from "./mod.ts";
-import { decode, encode } from "./deps.ts";
 import { RegistryCtor } from "./registry.ts";
 import {
   assert,
@@ -16,13 +15,15 @@ async function testUdd(
 ) {
   const fn = await Deno.makeTempFile();
   try {
-    await Deno.writeFile(fn, encode(before));
+    const encoder = new TextEncoder();
+    await Deno.writeFile(fn, encoder.encode(before));
     const results: UddResult[] = await udd(
       fn,
       { _registries: registries, quiet: true } as UddOptions,
     );
 
-    const altered = decode(await Deno.readFile(fn));
+    const decoder = new TextDecoder();
+    const altered = decoder.decode(await Deno.readFile(fn));
     assertEquals(after, altered);
     return results;
   } finally {
