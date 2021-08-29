@@ -1,4 +1,4 @@
-import { colors, decode, encode } from "./deps.ts";
+import { colors } from "./deps.ts";
 import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
 import { fragment, Semver, semver } from "./semver.ts";
@@ -52,7 +52,8 @@ export class Udd {
   }
 
   async content(): Promise<string> {
-    return decode(await Deno.readFile(this.filename));
+    const decoder = new TextDecoder();
+    return decoder.decode(await Deno.readFile(this.filename));
   }
 
   async run(): Promise<UddResult[]> {
@@ -172,6 +173,7 @@ export class Udd {
   async replace(left: string, right: string) {
     const content = await this.content();
     const newContent = content.split(left).join(right);
-    await Deno.writeFile(this.filename, encode(newContent));
+    const encoder = new TextEncoder();
+    await Deno.writeFile(this.filename, encoder.encode(newContent));
   }
 }
