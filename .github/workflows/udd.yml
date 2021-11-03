@@ -1,4 +1,4 @@
-name: Update dependencies
+name: udd-update-dependencies
 
 on:
   workflow_dispatch:
