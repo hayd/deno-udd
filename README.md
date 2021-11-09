@@ -46,6 +46,20 @@ To ensure that `deno test` is successful when updating each dependency:
 udd deps.ts --test="deno test"
 ```
 
+## Scheduled github action
+
+You might like to use a [github action](https://docs.github.com/en/actions) to
+execute udd each day, check whether there are dependency updates,
+and - if there are - create a pull request to your repository.
+
+![](https://user-images.githubusercontent.com/1931852/140999026-cebd4e9b-768a-4005-8888-2a964bccfe71.png)
+
+As an example see the
+[`.github/workflows/udd.yml`](https://github.com/hayd/deno-udd/blob/master/.github/workflows/udd.yml)
+file in the udd repository.
+
+_Thanks to [Eliaz Bobadilla](https://github.com/UltiRequiem) for the initial action implementation._
+
 ## Semantic versioning
 
 If you append a fragment `#${token}${version}` to your urls you can manage their update behavior:
