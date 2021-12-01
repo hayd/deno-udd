@@ -126,9 +126,10 @@ export class DenoLand implements RegistryUrl {
 
       DL_CACHE.set(name, json.versions);
       return json.versions;
-    } catch(err) {
+    } catch (err) {
       // TODO this could be a permissions error e.g. no --allow-net...
-      throw new Error(`error getting versions for ${name}`);
+      console.error(`error getting versions for ${name}`);
+      throw err;
     }
   }
 

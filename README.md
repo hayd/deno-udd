@@ -1,30 +1,33 @@
 # Update Deno Dependencies
 
-Run this script to update your dependency urls to their latest published versions.
-Optionally run --test(s) to ensure that each dependency update is non-breaking.
+Run this script to update your dependency urls to their latest published
+versions. Optionally run --test(s) to ensure that each dependency update is
+non-breaking.
 
 ![deno-udd](https://user-images.githubusercontent.com/1931852/76134819-37add280-5fd6-11ea-96c3-adbd57cfa68c.jpg)
 
-
 ![ci-status](https://github.com/hayd/deno-udd/workflows/ci/badge.svg)
 
-Note: udd is **fundamentally different** from something like npm or yarn.
-Other tools do a "distributed update" i.e. _every user updates_ independently
-(and potentially to untested versions/configurations of dependencies).
-With udd precisely _one person updates_ (a maintainer), and they can ensure that
-the new dependencies pass the test suite before commiting/releasing a new version.
-With udd every user has a fixed version of the dependencies.
+Note: udd is **fundamentally different** from something like npm or yarn. Other
+tools do a "distributed update" i.e. _every user updates_ independently (and
+potentially to untested versions/configurations of dependencies). With udd
+precisely _one person updates_ (a maintainer), and they can ensure that the new
+dependencies pass the test suite before commiting/releasing a new version. With
+udd every user has a fixed version of the dependencies.
 
 [Semantic versioning fragments](https://github.com/hayd/deno-udd#semantic-versioning)
 are _purely_ a convenience for the maintainer, and do not affect users.
 
 ## Installation
 
-Use deno [`install`](https://deno.land/std/manual.md#installing-executable-scripts) to install or update udd:
+Use deno
+[`install`](https://deno.land/std/manual.md#installing-executable-scripts) to
+install or update udd:
 
 ```sh
 deno install -A -f -n udd https://deno.land/x/udd@0.5.0/main.ts
 ```
+
 _You may need to include the deno bin directory in your PATH._
 
 ## Usage
@@ -36,6 +39,7 @@ udd deps.ts
 ```
 
 To update all the ts files in your directory:
+
 ```sh
 udd *.ts
 ```
@@ -49,8 +53,8 @@ udd deps.ts --test="deno test"
 ## Scheduled github action
 
 You might like to use a [github action](https://docs.github.com/en/actions) to
-execute udd each day, check whether there are dependency updates,
-and - if there are - create a pull request to your repository.
+execute udd each day, check whether there are dependency updates, and - if there
+are - create a pull request to your repository.
 
 ![](https://user-images.githubusercontent.com/1931852/140999026-cebd4e9b-768a-4005-8888-2a964bccfe71.png)
 
@@ -58,20 +62,23 @@ As an example see the
 [`.github/workflows/udd.yml`](https://github.com/hayd/deno-udd/blob/master/.github/workflows/udd.yml)
 file in the udd repository.
 
-_Thanks to [Eliaz Bobadilla](https://github.com/UltiRequiem) for the initial action implementation._
+_Thanks to [Eliaz Bobadilla](https://github.com/UltiRequiem) for the initial
+action implementation._
 
 ## Semantic versioning
 
-If you append a fragment `#${token}${version}` to your urls you can manage their update behavior:
+If you append a fragment `#${token}${version}` to your urls you can manage their
+update behavior:
 
-| Token | Name | udd updates to the latest version such that |
-| :---  | :--- |     ---: |
-| ^ | Compatible    | major version is the same (if major=0 then same minor version) |
-| ~ | Approximately | major and minor version are the same (or both major=0) |
-| < | Less than     | less than the provided version |
-| = | Equal         | it's exactly this version |
+| Token | Name          |                    udd updates to the latest version such that |
+| :---- | :------------ | -------------------------------------------------------------: |
+| ^     | Compatible    | major version is the same (if major=0 then same minor version) |
+| ~     | Approximately |         major and minor version are the same (or both major=0) |
+| <     | Less than     |                                 less than the provided version |
+| =     | Equal         |                                      it's exactly this version |
 
-The version argument is optional for `^`, `~` and `=` (the version passed is the version in the url).
+The version argument is optional for `^`, `~` and `=` (the version passed is the
+version in the url).
 
 ### Examples
 
