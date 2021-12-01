@@ -2,6 +2,7 @@
 
 import { colors, parseArgs } from "./deps.ts";
 import { udd, UddOptions, UddResult } from "./mod.ts";
+import { DenoLand } from "./registry.ts";
 
 function testsThunk(tests: string[]): () => Promise<void> {
   return async () => {
@@ -40,14 +41,64 @@ Positional arguments:
 Optional arguments:
  -h, --help \tshow this help text
  --dry-run  \ttest what dependencies can be updated
- --test TEST\tcommand to run after each dependency update e.g. "deno test"`);
+ --test TEST\tcommand to run after each dependency update e.g. "deno test"
+ --upgrade  \tupdate udd to the latest version
+ --version  \tprint the version of udd`);
+}
+
+function version() {
+  // FIXME this might be kinda a hacky way to do it...
+  let u = new DenoLand(import.meta.url);
+  try {
+    console.log(u.version());
+  } catch (err) {
+    console.log(undefined);
+  }
+}
+
+// https://github.com/jurassiscripts/velociraptor/blob/971b7db71cf635b0c8f2de822aa4270e52cce498/src/util.ts#L22-L39
+async function spawn(args: string[], cwd?: string): Promise<string> {
+  const process = Deno.run({
+    cmd: args,
+    cwd,
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const { code } = await process.status();
+  if (code === 0) {
+    const rawOutput = await process.output();
+    process.close();
+    return new TextDecoder().decode(rawOutput);
+  } else {
+    const error = new TextDecoder().decode(await process.stderrOutput());
+    process.close();
+    throw new Error(error);
+  }
+}
+
+async function upgrade() {
+  let u = new DenoLand("https://deno.land/x/udd@0.x/main.ts");
+  const latestVersion = (await u.all())[0];
+  const url = u.at(latestVersion).url;
+  console.log(url);
+
+  // TODO support alternative name to udd if that's what's been used before.
+  await spawn([Deno.execPath(), "install", "--reload", "-qAfn", "udd", url]);
 }
 
 async function main(args: string[]) {
-  const a = parseArgs(args, { boolean: ["dry-run", "h", "help"] });
+  const a = parseArgs(args, {
+    boolean: ["dry-run", "h", "help", "upgrade", "version"],
+  });
 
   if (a.h || a.help) {
     return help();
+  }
+  if (a.upgrade) {
+    return await upgrade();
+  }
+  if (a.version) {
+    return version();
   }
 
   const depFiles: string[] = a._.map((x) => x.toString());
