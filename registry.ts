@@ -293,6 +293,33 @@ export class Skypack implements RegistryUrl {
   regexp = /https?:\/\/cdn.skypack.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
+export class EsmSh implements RegistryUrl {
+  url: string;
+
+  name(): string {
+    return defaultName(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    return await unpkgVersions(this.name());
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultAt(this, version);
+    return new EsmSh(url);
+  }
+
+  version(): string {
+    return defaultVersion(this);
+  }
+
+  regexp = /https?:\/\/esm.sh\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
 export class GithubRaw implements RegistryUrl {
   url: string;
 
@@ -496,6 +523,7 @@ export const REGISTRIES = [
   Jspm,
   Pika,
   Skypack,
+  EsmSh,
   GithubRaw,
   GitlabRaw,
   JsDelivr,
