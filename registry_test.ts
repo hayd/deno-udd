@@ -78,6 +78,15 @@ Deno.test("registrySkypack", () => {
   assertEquals(vAt.url, "https://cdn.skypack.dev/foo@0.2.0/");
 });
 
+Deno.test("registryEsmSh", () => {
+  const url = "https://esm.sh/foo@0.1.0/";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://esm.sh/foo@0.2.0/");
+});
+
 Deno.test("registryGithubRaw", () => {
   const url = "https://raw.githubusercontent.com/bar/foo/0.1.0/foo.ts";
   const v = lookup(url, REGISTRIES);
