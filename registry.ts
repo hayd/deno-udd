@@ -179,18 +179,8 @@ function defaultParts(that: RegistryUrl): PackageInfo {
     parts,
   };
 }
-function defaultScopeAt(that: RegistryUrl, version: string): string {
-  const { parts, packageName } = defaultParts(that);
-  parts[4] = `${packageName}@${version}`;
-  return parts.join("/");
-}
-export function _defaultAt(
-  that: RegistryUrl,
-  version: string,
-  hasScope = false,
-): string {
-  if (!hasScope) return that.url.replace(/@(.*?)(\/|$)/, `@${version}/`);
 
+function defaultScopeAt(that: RegistryUrl, version: string): string {
   const { parts, packageName } = defaultParts(that);
   parts[4] = `${packageName}@${version}`;
   return parts.join("/");
