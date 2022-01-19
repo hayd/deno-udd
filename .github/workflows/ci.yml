@@ -9,4 +9,9 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: 1.15.3
-      - run: deno test --allow-read --allow-write
+      - name: Check format
+        run: deno fmt --check
+      - name: Run lint
+        run: deno lint
+      - name: Run test
+        run: deno test --allow-read --allow-write
