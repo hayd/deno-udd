@@ -203,11 +203,7 @@ export class UnpkgScope implements RegistryUrl {
   }
 
   version(): string {
-    const { version } = this.parts();
-    if (version === undefined) {
-      throw Error(`Unable to find version in ${this.url}`);
-    }
-    return version;
+    return this.parts().version;
   }
 
   regexp = /https?:\/\/unpkg\.com\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
@@ -321,11 +317,7 @@ export class PikaScope implements RegistryUrl {
   }
 
   version(): string {
-    const { version } = this.parts();
-    if (version === undefined) {
-      throw Error(`Unable to find version in ${this.url}`);
-    }
-    return version;
+    return this.parts().version;
   }
 
   regexp =
@@ -382,11 +374,7 @@ export class SkypackScope implements RegistryUrl {
   }
 
   version(): string {
-    const { version } = this.parts();
-    if (version === undefined) {
-      throw Error(`Unable to find version in ${this.url}`);
-    }
-    return version;
+    return this.parts().version;
   }
 
   regexp =
@@ -443,11 +431,7 @@ export class EsmShScope implements RegistryUrl {
   }
 
   version(): string {
-    const { version } = this.parts();
-    if (version === undefined) {
-      throw Error(`Unable to find version in ${this.url}`);
-    }
-    return version;
+    return this.parts().version;
   }
 
   regexp = /https?:\/\/esm\.sh\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
