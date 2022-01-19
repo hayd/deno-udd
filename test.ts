@@ -1,12 +1,6 @@
 import { udd, UddOptions, UddResult } from "./mod.ts";
 import { RegistryCtor } from "./registry.ts";
-import {
-  assert,
-  assertEquals,
-  assertThrowsAsync,
-  FakeDenoLand,
-  FakeRegistry,
-} from "./test_deps.ts";
+import { assertEquals, FakeDenoLand, FakeRegistry } from "./test_deps.ts";
 
 async function testUdd(
   before: string,

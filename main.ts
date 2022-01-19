@@ -48,11 +48,11 @@ Optional arguments:
 
 function version() {
   // FIXME this might be kinda a hacky way to do it...
-  let u = new DenoLand(import.meta.url);
+  const u = new DenoLand(import.meta.url);
   try {
     console.log(u.version());
-  } catch (err) {
-    console.log(undefined);
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -77,7 +77,7 @@ async function spawn(args: string[], cwd?: string): Promise<string> {
 }
 
 async function upgrade() {
-  let u = new DenoLand("https://deno.land/x/udd@0.x/main.ts");
+  const u = new DenoLand("https://deno.land/x/udd@0.x/main.ts");
   const latestVersion = (await u.all())[0];
   const url = u.at(latestVersion).url;
   console.log(url);

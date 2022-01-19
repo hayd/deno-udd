@@ -23,5 +23,5 @@ export class Progress {
 }
 
 export class SilentProgress extends Progress {
-  async log(msg: string) {}
+  async log(_: string) {}
 }

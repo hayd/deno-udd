@@ -115,7 +115,7 @@ export function fragment(
     const s = new Semver(v || version);
     // we have to reverse this due to the way fragments work...
     return (other: Semver) => other._(t, s);
-  } catch (e) {
+  } catch (_) {
     throw new SyntaxError(`invalid semver version: ${v || version}`);
   }
 }
