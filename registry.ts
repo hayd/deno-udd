@@ -179,6 +179,22 @@ function defaultParts(that: RegistryUrl): PackageInfo {
     parts,
   };
 }
+function defaultScopeAt(that: RegistryUrl, version: string): string {
+  const { parts, packageName } = defaultParts(that);
+  parts[4] = `${packageName}@${version}`;
+  return parts.join("/");
+}
+export function _defaultAt(
+  that: RegistryUrl,
+  version: string,
+  hasScope = false,
+): string {
+  if (!hasScope) return that.url.replace(/@(.*?)(\/|$)/, `@${version}/`);
+
+  const { parts, packageName } = defaultParts(that);
+  parts[4] = `${packageName}@${version}`;
+  return parts.join("/");
+}
 
 export class UnpkgScope implements RegistryUrl {
   url: string;
@@ -197,9 +213,8 @@ export class UnpkgScope implements RegistryUrl {
   }
 
   at(version: string): RegistryUrl {
-    const { parts, packageName } = this.parts();
-    parts[4] = `${packageName}@${version}`;
-    return new UnpkgScope(parts.join("/"));
+    const url = defaultScopeAt(this, version);
+    return new UnpkgScope(url);
   }
 
   version(): string {
@@ -311,9 +326,8 @@ export class PikaScope implements RegistryUrl {
   }
 
   at(version: string): RegistryUrl {
-    const { parts, packageName } = this.parts();
-    parts[4] = `${packageName}@${version}`;
-    return new PikaScope(parts.join("/"));
+    const url = defaultScopeAt(this, version);
+    return new PikaScope(url);
   }
 
   version(): string {
@@ -368,9 +382,8 @@ export class SkypackScope implements RegistryUrl {
   }
 
   at(version: string): RegistryUrl {
-    const { parts, packageName } = this.parts();
-    parts[4] = `${packageName}@${version}`;
-    return new SkypackScope(parts.join("/"));
+    const url = defaultScopeAt(this, version);
+    return new SkypackScope(url);
   }
 
   version(): string {
@@ -425,9 +438,8 @@ export class EsmShScope implements RegistryUrl {
   }
 
   at(version: string): RegistryUrl {
-    const { parts, packageName } = this.parts();
-    parts[4] = `${packageName}@${version}`;
-    return new EsmShScope(parts.join("/"));
+    const url = defaultAt(this, version);
+    return new EsmShScope(url);
   }
 
   version(): string {
