@@ -438,7 +438,7 @@ export class EsmShScope implements RegistryUrl {
   }
 
   at(version: string): RegistryUrl {
-    const url = defaultAt(this, version);
+    const url = defaultScopeAt(this, version);
     return new EsmShScope(url);
   }
 
