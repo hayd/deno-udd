@@ -160,7 +160,7 @@ interface PackageInfo {
   packageName: string;
   version: string;
 }
-function defaultParts(that: RegistryUrl): PackageInfo {
+function defaultInfo(that: RegistryUrl): PackageInfo {
   const parts = that.url.split("/");
   const [packageName, version] = parts[4].split("@");
   if (parts[3] === undefined) {
@@ -181,7 +181,7 @@ function defaultParts(that: RegistryUrl): PackageInfo {
 }
 
 function defaultScopeAt(that: RegistryUrl, version: string): string {
-  const { parts, packageName } = defaultParts(that);
+  const { parts, packageName } = defaultInfo(that);
   parts[4] = `${packageName}@${version}`;
   return parts.join("/");
 }
@@ -190,7 +190,7 @@ export class UnpkgScope implements RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
-    return defaultParts(this);
+    return defaultInfo(this);
   }
 
   constructor(url: string) {
@@ -303,7 +303,7 @@ export class PikaScope implements RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
-    return defaultParts(this);
+    return defaultInfo(this);
   }
 
   constructor(url: string) {
@@ -359,7 +359,7 @@ export class SkypackScope implements RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
-    return defaultParts(this);
+    return defaultInfo(this);
   }
 
   constructor(url: string) {
@@ -415,7 +415,7 @@ export class EsmShScope implements RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
-    return defaultParts(this);
+    return defaultInfo(this);
   }
 
   constructor(url: string) {
