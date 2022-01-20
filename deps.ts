@@ -1,2 +1,2 @@
-export { parse as parseArgs } from "https://deno.land/std@0.121.0/flags/mod.ts";
-export * as colors from "https://deno.land/std@0.121.0/fmt/colors.ts";
+export { parse as parseArgs } from "https://deno.land/std@0.122.0/flags/mod.ts";
+export * as colors from "https://deno.land/std@0.122.0/fmt/colors.ts";
