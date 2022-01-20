@@ -154,6 +154,66 @@ async function unpkgVersions(name: string): Promise<string[]> {
   return m.map((x) => x[1]);
 }
 
+interface PackageInfo {
+  parts: string[];
+  scope: string;
+  packageName: string;
+  version: string;
+}
+function defaultInfo(that: RegistryUrl): PackageInfo {
+  const parts = that.url.split("/");
+  const [packageName, version] = parts[4].split("@");
+  if (parts[3] === undefined) {
+    throw new Error(`Package scope not found in ${that.url}`);
+  }
+  if (packageName === undefined) {
+    throw new Error(`Package name not found in ${that.url}`);
+  }
+  if (version === undefined) {
+    throw new Error(`Unable to find version in ${that.url}`);
+  }
+  return {
+    scope: parts[3],
+    packageName,
+    version,
+    parts,
+  };
+}
+
+function defaultScopeAt(that: RegistryUrl, version: string): string {
+  const { parts, packageName } = defaultInfo(that);
+  parts[4] = `${packageName}@${version}`;
+  return parts.join("/");
+}
+
+export class UnpkgScope implements RegistryUrl {
+  url: string;
+
+  parts(): PackageInfo {
+    return defaultInfo(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    const { scope, packageName } = this.parts();
+    return await unpkgVersions(`${scope}/${packageName}`);
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultScopeAt(this, version);
+    return new UnpkgScope(url);
+  }
+
+  version(): string {
+    return this.parts().version;
+  }
+
+  regexp = /https?:\/\/unpkg\.com\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
 export class Unpkg implements RegistryUrl {
   url: string;
 
@@ -239,6 +299,35 @@ export class Denopkg implements RegistryUrl {
   regexp = /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
+export class PikaScope implements RegistryUrl {
+  url: string;
+
+  parts(): PackageInfo {
+    return defaultInfo(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    const { scope, packageName } = this.parts();
+    return await unpkgVersions(`${scope}/${packageName}`);
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultScopeAt(this, version);
+    return new PikaScope(url);
+  }
+
+  version(): string {
+    return this.parts().version;
+  }
+
+  regexp =
+    /https?:\/\/cdn\.pika\.dev(\/\_)?\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
 export class Pika implements RegistryUrl {
   url: string;
 
@@ -266,6 +355,35 @@ export class Pika implements RegistryUrl {
   regexp = /https?:\/\/cdn.pika.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
+export class SkypackScope implements RegistryUrl {
+  url: string;
+
+  parts(): PackageInfo {
+    return defaultInfo(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    const { scope, packageName } = this.parts();
+    return await unpkgVersions(`${scope}/${packageName}`);
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultScopeAt(this, version);
+    return new SkypackScope(url);
+  }
+
+  version(): string {
+    return this.parts().version;
+  }
+
+  regexp =
+    /https?:\/\/cdn\.skypack\.dev(\/\_)?\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
 export class Skypack implements RegistryUrl {
   url: string;
 
@@ -291,6 +409,34 @@ export class Skypack implements RegistryUrl {
   }
 
   regexp = /https?:\/\/cdn.skypack.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
+export class EsmShScope implements RegistryUrl {
+  url: string;
+
+  parts(): PackageInfo {
+    return defaultInfo(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    const { scope, packageName } = this.parts();
+    return await unpkgVersions(`${scope}/${packageName}`);
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultScopeAt(this, version);
+    return new EsmShScope(url);
+  }
+
+  version(): string {
+    return this.parts().version;
+  }
+
+  regexp = /https?:\/\/esm\.sh\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
 export class EsmSh implements RegistryUrl {
@@ -518,11 +664,15 @@ export class NestLand implements RegistryUrl {
 
 export const REGISTRIES = [
   DenoLand,
+  UnpkgScope,
   Unpkg,
   Denopkg,
   Jspm,
+  PikaScope,
   Pika,
+  SkypackScope,
   Skypack,
+  EsmShScope,
   EsmSh,
   GithubRaw,
   GitlabRaw,

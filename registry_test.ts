@@ -33,6 +33,15 @@ Deno.test("registryDenolandX", () => {
   assertEquals(vAt.url, "https://deno.land/x/foo@0.2.0/foo.ts");
 });
 
+Deno.test("registryUnpkgScope", () => {
+  const url = "https://unpkg.com/@bar/foo@0.1.0/foo.ts";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://unpkg.com/@bar/foo@0.2.0/foo.ts");
+});
+
 Deno.test("registryUnpkg", () => {
   const url = "https://unpkg.com/foo@0.1.0/foo.ts";
   const v = lookup(url, REGISTRIES);
@@ -60,6 +69,15 @@ Deno.test("registryJspm", () => {
   assertEquals(vAt.url, "https://dev.jspm.io/npm:foo@0.2.0/");
 });
 
+Deno.test("registryPikaScope", () => {
+  const url = "https://cdn.pika.dev/@bar/foo@0.1.0/";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://cdn.pika.dev/@bar/foo@0.2.0/");
+});
+
 Deno.test("registryPika", () => {
   const url = "https://cdn.pika.dev/foo@0.1.0/";
   const v = lookup(url, REGISTRIES);
@@ -69,6 +87,15 @@ Deno.test("registryPika", () => {
   assertEquals(vAt.url, "https://cdn.pika.dev/foo@0.2.0/");
 });
 
+Deno.test("registrySkypackScope", () => {
+  const url = "https://cdn.skypack.dev/@bar/foo@0.1.0/";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://cdn.skypack.dev/@bar/foo@0.2.0/");
+});
+
 Deno.test("registrySkypack", () => {
   const url = "https://cdn.skypack.dev/foo@0.1.0/";
   const v = lookup(url, REGISTRIES);
@@ -76,6 +103,15 @@ Deno.test("registrySkypack", () => {
 
   const vAt = v.at("0.2.0");
   assertEquals(vAt.url, "https://cdn.skypack.dev/foo@0.2.0/");
+});
+
+Deno.test("registryEsmShScope", () => {
+  const url = "https://esm.sh/@bar/foo@0.1.0/";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://esm.sh/@bar/foo@0.2.0/");
 });
 
 Deno.test("registryEsmSh", () => {
