@@ -1,6 +1,6 @@
 // deno -A main.ts deps.ts --test="deno test"
 
-import { colors, parseArgs } from "./deps.ts";
+import { colors, expandGlob, parseArgs } from "./deps.ts";
 import { udd, UddOptions, UddResult } from "./mod.ts";
 import { DenoLand } from "./registry.ts";
 
@@ -101,7 +101,12 @@ async function main(args: string[]) {
     return version();
   }
 
-  const depFiles: string[] = a._.map((x) => x.toString());
+  const depFiles: string[] = [];
+  for (const arg of a._.map((x) => x.toString())) {
+    for await (const file of expandGlob(arg)) {
+      depFiles.push(file.path);
+    }
+  }
 
   if (depFiles.length === 0) {
     help();
