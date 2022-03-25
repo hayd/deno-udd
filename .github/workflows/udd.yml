@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: 1.17.3
+          deno-version: 1.20.2
       - name: Update dependencies
         run: |
           deno run -A https://deno.land/x/udd/main.ts deps.ts
@@ -33,10 +33,10 @@ jobs:
           echo "::set-output name=sha::$(git rev-parse HEAD)"
       - name: Set commit status with pending
         uses: Sibz/github-status-action@v1
-        with: 
+        with:
           authToken: ${{ secrets.GITHUB_TOKEN }}
-          context: 'Basic tests'
-          state: 'pending'
+          context: "Basic tests"
+          state: "pending"
           sha: ${{ steps.commit.outputs.sha }}
       - name: Basic tests
         id: test
@@ -45,9 +45,9 @@ jobs:
           deno test --allow-read --allow-write
       - name: Set commit status with outcome
         uses: Sibz/github-status-action@v1
-        with: 
+        with:
           authToken: ${{ secrets.GITHUB_TOKEN }}
-          context: 'Basic tests'
-          description: 'To run other CI actions close/reopen this PR'
+          context: "Basic tests"
+          description: "To run other CI actions close/reopen this PR"
           state: ${{ steps.test.outcome }}
           sha: ${{ steps.commit.outputs.sha }}
