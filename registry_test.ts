@@ -60,6 +60,15 @@ Deno.test("registryDenopkg", () => {
   assertEquals(vAt.url, "https://denopkg.com/bar/foo@0.2.0/foo.ts");
 });
 
+Deno.test("registryPaxDenoDev", () => {
+  const url = "https://pax.deno.dev/bar/foo@0.1.0/foo.ts";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "https://pax.deno.dev/bar/foo@0.2.0/foo.ts")
+});
+
 Deno.test("registryJspm", () => {
   const url = "https://dev.jspm.io/npm:foo@0.1.0/";
   const v = lookup(url, REGISTRIES);
