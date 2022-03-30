@@ -66,7 +66,7 @@ Deno.test("registryPaxDenoDev", () => {
   assert(v !== undefined);
 
   const vAt = v.at("0.2.0");
-  assertEquals(vAt.url, "https://pax.deno.dev/bar/foo@0.2.0/foo.ts")
+  assertEquals(vAt.url, "https://pax.deno.dev/bar/foo@0.2.0/foo.ts");
 });
 
 Deno.test("registryJspm", () => {
