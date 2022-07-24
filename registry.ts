@@ -299,6 +299,37 @@ export class Denopkg implements RegistryUrl {
   regexp = /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
+export class PaxDenoDev implements RegistryUrl {
+  url: string;
+
+  owner(): string {
+    return this.url.split("/")[3];
+  }
+
+  repo(): string {
+    return defaultName(this);
+  }
+
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async all(): Promise<string[]> {
+    return await githubReleases(this.owner(), this.repo());
+  }
+
+  at(version: string): RegistryUrl {
+    const url = defaultAt(this, version);
+    return new PaxDenoDev(url);
+  }
+
+  version(): string {
+    return defaultVersion(this);
+  }
+
+  regexp = /https?:\/\/pax.deno.dev\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
+}
+
 export class PikaScope implements RegistryUrl {
   url: string;
 
@@ -667,6 +698,7 @@ export const REGISTRIES = [
   UnpkgScope,
   Unpkg,
   Denopkg,
+  PaxDenoDev,
   Jspm,
   PikaScope,
   Pika,

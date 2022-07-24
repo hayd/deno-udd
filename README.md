@@ -114,6 +114,7 @@ udd supports the following registry domains:
 - https://gitlab.com/:user/:repo/-/raw
 - https://cdn.jsdelivr.net
 - https://x.nest.land
+- https://pax.deno.dev
 
 _Create an issue to request additional registries._
 
