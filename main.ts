@@ -117,7 +117,7 @@ async function main(args: string[]) {
   if (a.test instanceof Array) {
     tests = a.test;
   } else if (a.test) {
-    tests = [a.test];
+    tests = [a.test as string];
   }
 
   const thunk = testsThunk(tests);
