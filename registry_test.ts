@@ -170,3 +170,21 @@ Deno.test("registryNestLand", () => {
   const vAt = v.at("0.2.0");
   assertEquals(vAt.url, "https://x.nest.land/foo@0.2.0/foo.ts");
 });
+
+Deno.test("registryNpm", () => {
+  const url = "npm:foo@0.1.0/foo";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "npm:foo@0.2.0/foo");
+});
+
+Deno.test("registryNpmOrg", () => {
+  const url = "npm:@foo/foo@0.1.0/foo";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "npm:@foo/foo@0.2.0/foo");
+});
