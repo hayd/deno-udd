@@ -139,10 +139,13 @@ export class Udd {
       return { initUrl, initVersion };
     }
 
-    await this.progress.log(`Attempting update: ${url.url} -> ${newVersion}`);
-    const failed: boolean = await this.maybeReplace(url, newVersion, initUrl);
-    const msg = failed ? "failed" : "successful";
-    await this.progress.log(`Update ${msg}: ${url.url} -> ${newVersion}`);
+    let failed = false;
+    if (!this.options.dryRun) {
+      await this.progress.log(`Attempting update: ${url.url} -> ${newVersion}`);
+      failed = await this.maybeReplace(url, newVersion, initUrl);
+      const msg = failed ? "failed" : "successful";
+      await this.progress.log(`Update ${msg}: ${url.url} -> ${newVersion}`);
+    }
     const maybeFragment = newFragmentToken === undefined
       ? ""
       : `#${newFragmentToken}`;
@@ -164,7 +167,7 @@ export class Udd {
     await this.replace(initUrl, newUrl);
 
     const failed = await this.test().then((_) => false).catch((_) => true);
-    if (failed || this.options.dryRun) {
+    if (failed) {
       await this.replace(newUrl, initUrl);
     }
     return failed;
