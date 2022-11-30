@@ -198,7 +198,7 @@ export class Npm implements RegistryUrl {
     return version;
   }
 
-  regexp = /npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^/]+))?[^\'\"]/;
+  regexp = /npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^\/\"\']+))?[^\'\"]/;
 }
 
 async function unpkgVersions(name: string): Promise<string[]> {
