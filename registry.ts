@@ -10,16 +10,25 @@ export function lookup(url: string, registries: RegistryCtor[]):
   }
 }
 
-export interface RegistryUrl {
-  url: string;
+export abstract class RegistryUrl {
+  url!: string;
   // all versions of the url
-  all: () => Promise<string[]>;
+  all(): Promise<string[]> {
+    throw "unimplemented";
+  }
   // url at a given version
-  at(version: string): RegistryUrl;
+  at(_version: string): RegistryUrl {
+    throw "unimplemented";
+  }
   // current version of url
-  version: () => string;
+  version() {
+    return this.versionInner().split("#")[0];
+  }
+  versionInner(): string {
+    throw "unimplemented";
+  }
   // is url valid for this RegistryUrl
-  regexp: RegExp;
+  regexp!: RegExp;
 }
 
 export function defaultAt(that: RegistryUrl, version: string): string {
@@ -95,10 +104,11 @@ interface VersionsJson {
 }
 
 const DL_CACHE: Map<string, string[]> = new Map<string, string[]>();
-export class DenoLand implements RegistryUrl {
+export class DenoLand extends RegistryUrl {
   url: string;
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -138,7 +148,7 @@ export class DenoLand implements RegistryUrl {
     return new DenoLand(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
@@ -146,11 +156,12 @@ export class DenoLand implements RegistryUrl {
 }
 
 const NPM_CACHE: Map<string, string[]> = new Map<string, string[]>();
-export class Npm implements RegistryUrl {
+export class Npm extends RegistryUrl {
   url: string;
   parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^/]+))?(.*)/;
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -190,7 +201,7 @@ export class Npm implements RegistryUrl {
     return new Npm(url);
   }
 
-  version(): string {
+  versionInner(): string {
     const [, _, version] = this.url.match(this.parseRegex)!;
     if (version === null) {
       throw Error(`Unable to find version in ${this.url}`);
@@ -242,7 +253,7 @@ function defaultScopeAt(that: RegistryUrl, version: string): string {
   return parts.join("/");
 }
 
-export class UnpkgScope implements RegistryUrl {
+export class UnpkgScope extends RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
@@ -250,6 +261,7 @@ export class UnpkgScope implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -263,14 +275,14 @@ export class UnpkgScope implements RegistryUrl {
     return new UnpkgScope(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return this.parts().version;
   }
 
   regexp = /https?:\/\/unpkg\.com\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class Unpkg implements RegistryUrl {
+export class Unpkg extends RegistryUrl {
   url: string;
 
   name(): string {
@@ -278,6 +290,7 @@ export class Unpkg implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -290,14 +303,14 @@ export class Unpkg implements RegistryUrl {
     return new Unpkg(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
   regexp = /https?:\/\/unpkg.com\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class Jspm implements RegistryUrl {
+export class Jspm extends RegistryUrl {
   url: string;
 
   name(): string {
@@ -305,6 +318,7 @@ export class Jspm implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -317,14 +331,14 @@ export class Jspm implements RegistryUrl {
     return new Jspm(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
   regexp = /https?:\/\/dev.jspm.io\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class Denopkg implements RegistryUrl {
+export class Denopkg extends RegistryUrl {
   url: string;
 
   owner(): string {
@@ -336,6 +350,7 @@ export class Denopkg implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -348,14 +363,14 @@ export class Denopkg implements RegistryUrl {
     return new Denopkg(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
   regexp = /https?:\/\/denopkg.com\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class PaxDenoDev implements RegistryUrl {
+export class PaxDenoDev extends RegistryUrl {
   url: string;
 
   owner(): string {
@@ -367,6 +382,7 @@ export class PaxDenoDev implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -379,14 +395,14 @@ export class PaxDenoDev implements RegistryUrl {
     return new PaxDenoDev(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
   regexp = /https?:\/\/pax.deno.dev\/[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class PikaScope implements RegistryUrl {
+export class PikaScope extends RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
@@ -394,6 +410,7 @@ export class PikaScope implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -407,7 +424,7 @@ export class PikaScope implements RegistryUrl {
     return new PikaScope(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return this.parts().version;
   }
 
@@ -415,7 +432,7 @@ export class PikaScope implements RegistryUrl {
     /https?:\/\/cdn\.pika\.dev(\/\_)?\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class Pika implements RegistryUrl {
+export class Pika extends RegistryUrl {
   url: string;
 
   name(): string {
@@ -423,6 +440,7 @@ export class Pika implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -435,14 +453,14 @@ export class Pika implements RegistryUrl {
     return new Pika(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
   regexp = /https?:\/\/cdn.pika.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class SkypackScope implements RegistryUrl {
+export class SkypackScope extends RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
@@ -450,6 +468,7 @@ export class SkypackScope implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -463,7 +482,7 @@ export class SkypackScope implements RegistryUrl {
     return new SkypackScope(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return this.parts().version;
   }
 
@@ -471,7 +490,7 @@ export class SkypackScope implements RegistryUrl {
     /https?:\/\/cdn\.skypack\.dev(\/\_)?\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class Skypack implements RegistryUrl {
+export class Skypack extends RegistryUrl {
   url: string;
 
   name(): string {
@@ -479,6 +498,7 @@ export class Skypack implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -491,14 +511,14 @@ export class Skypack implements RegistryUrl {
     return new Skypack(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
   regexp = /https?:\/\/cdn.skypack.dev(\/\_)?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class EsmShScope implements RegistryUrl {
+export class EsmShScope extends RegistryUrl {
   url: string;
 
   parts(): PackageInfo {
@@ -506,6 +526,7 @@ export class EsmShScope implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -519,14 +540,14 @@ export class EsmShScope implements RegistryUrl {
     return new EsmShScope(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return this.parts().version;
   }
 
   regexp = /https?:\/\/esm\.sh\/@[^\/\"\']*?\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class EsmSh implements RegistryUrl {
+export class EsmSh extends RegistryUrl {
   url: string;
 
   name(): string {
@@ -534,6 +555,7 @@ export class EsmSh implements RegistryUrl {
   }
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -546,17 +568,18 @@ export class EsmSh implements RegistryUrl {
     return new EsmSh(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 
   regexp = /https?:\/\/esm.sh\/[^\/\"\']*?\@[^\'\"]*/;
 }
 
-export class GithubRaw implements RegistryUrl {
+export class GithubRaw extends RegistryUrl {
   url: string;
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -571,7 +594,7 @@ export class GithubRaw implements RegistryUrl {
     return new GithubRaw(parts.join("/"));
   }
 
-  version(): string {
+  versionInner(): string {
     const v = this.url.split("/")[5];
     if (v === undefined) {
       throw Error(`Unable to find version in ${this.url}`);
@@ -583,10 +606,11 @@ export class GithubRaw implements RegistryUrl {
     /https?:\/\/raw\.githubusercontent\.com\/[^\/\"\']+\/[^\/\"\']+\/(?!master)[^\/\"\']+\/[^\'\"]*/;
 }
 
-export class JsDelivr implements RegistryUrl {
+export class JsDelivr extends RegistryUrl {
   url: string;
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -612,7 +636,7 @@ export class JsDelivr implements RegistryUrl {
     return new GithubRaw(parts.join("/"));
   }
 
-  version(): string {
+  versionInner(): string {
     const { version } = this.parts();
     if (version === undefined) {
       throw Error(`Unable to find version in ${this.url}`);
@@ -668,10 +692,11 @@ async function gitlabReleases(
   return versions;
 }
 
-export class GitlabRaw implements RegistryUrl {
+export class GitlabRaw extends RegistryUrl {
   url: string;
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -686,7 +711,7 @@ export class GitlabRaw implements RegistryUrl {
     return new GithubRaw(parts.join("/"));
   }
 
-  version(): string {
+  versionInner(): string {
     const v = this.url.split("/")[7];
     if (v === undefined) {
       throw Error(`Unable to find version in ${this.url}`);
@@ -724,10 +749,11 @@ async function nestlandReleases(
   return packageUploadNames.map((name) => name.split("@")[1]).reverse();
 }
 
-export class NestLand implements RegistryUrl {
+export class NestLand extends RegistryUrl {
   url: string;
 
   constructor(url: string) {
+    super();
     this.url = url;
   }
 
@@ -741,7 +767,7 @@ export class NestLand implements RegistryUrl {
     return new NestLand(url);
   }
 
-  version(): string {
+  versionInner(): string {
     return defaultVersion(this);
   }
 

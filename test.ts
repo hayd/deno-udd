@@ -1,6 +1,11 @@
 import { udd, UddOptions, UddResult } from "./mod.ts";
 import { RegistryCtor } from "./registry.ts";
-import { assertEquals, FakeDenoLand, FakeRegistry } from "./test_deps.ts";
+import {
+  assertEquals,
+  FakeDenoLand,
+  FakeNpm,
+  FakeRegistry,
+} from "./test_deps.ts";
 
 async function testUdd(
   before: string,
@@ -158,4 +163,14 @@ import "https://raw.githubusercontent.com/foo/bar/main/mod.ts#=";
 `;
   const results = await testUdd(contents, expected);
   assertEquals(results.length, 0);
+});
+
+Deno.test("uddNpmWithTilde", async () => {
+  const contents = `
+import Fuse from "npm:fuse.js@~6.6.0"
+`;
+  const expected = `
+import Fuse from "npm:fuse.js@6.6.6"
+`;
+  await testUdd(contents, expected, [FakeNpm]);
 });
