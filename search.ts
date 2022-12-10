@@ -1,19 +1,51 @@
-import { RegistryCtor } from "./registry.ts";
+interface DenoInfo {
+  roots: string[];
+  modules: DenoModule[];
+}
+interface DenoModule {
+  specifier: string;
+  dependencies: DenoDependency[];
+}
+interface DenoDependency {
+  code: {
+    specifier: string;
+    span: {
+      start: { line: number; character: number };
+      end: { line: number; character: number };
+    };
+  };
+}
 
-// FIXME use deno info once it has json output?
-
-// given a ts/js string we want to find the import urls/
-// note: these can span over multiple lines
-// import "https?://deno.land/(std|x)@([^/"]?)/.*?"
-// import { foo, bar } from "https?://deno.land/(std|x)@([^/"]?)/.*?"
-
-export function importUrls(
-  tsContent: string,
-  registries: RegistryCtor[],
-): string[] {
-  // look up all the supported regex matches.
-  const rs: RegExp[] = registries.map((R) => new R("").regexp).map((re) =>
-    new RegExp(re, "g")
+async function getDenoInfo(targetFile: string) {
+  const p = Deno.run({
+    cmd: ["deno", "info", "--json", targetFile],
+    stdout: "piped",
+  });
+  const denoInfo: DenoInfo = await p.output().then((o) =>
+    JSON.parse(new TextDecoder().decode(o))
   );
-  return rs.flatMap((regexp) => tsContent.match(regexp) || []);
+  p.close();
+  return denoInfo;
+}
+
+export async function importUrls(
+  targetFile: string,
+): Promise<string[]> {
+  const denoInfo = await getDenoInfo(targetFile);
+
+  const roots = denoInfo.roots;
+  // NOTE: When can we have more then one root ?
+  const root = roots[0];
+
+  const targetModule = denoInfo.modules.find((m) => m.specifier === root);
+  if (!targetModule) return [];
+
+  const remoteDependencies = targetModule.dependencies.filter((d) => {
+    const protocol = new URL(d.code.specifier).protocol;
+    return protocol === "https:" || protocol === "npm:";
+  });
+
+  // NOTE: DenoDependency has the exact location of the import (span field)
+  // Can we use that information for replace ? should we ?
+  return remoteDependencies.map((rd) => decodeURI(rd.code.specifier));
 }
