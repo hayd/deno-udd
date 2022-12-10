@@ -1,4 +1,4 @@
-import { defaultAt, defaultVersion, RegistryUrl } from "./registry.ts";
+import { defaultAt, defaultVersion, Npm, RegistryUrl } from "./registry.ts";
 import { DenoLand } from "./registry.ts";
 
 export {
@@ -40,39 +40,8 @@ export class FakeDenoLand extends DenoLand {
   }
 }
 
-export class FakeNpm extends RegistryUrl {
-  url: string;
-  parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^/]+))?(.*)/;
-
-  constructor(url: string) {
-    super();
-    this.url = url;
-  }
-
-  name(): string {
-    const [, name] = this.url.match(this.parseRegex)!;
-
-    return name;
-  }
-
-  at(version: string): RegistryUrl {
-    const [, name, _, files] = this.url.match(this.parseRegex)!;
-    const url = `npm:${name}@${version}${files}`;
-    return new FakeNpm(url);
-  }
-
-  versionInner(): string {
-    const [, _, version] = this.url.match(this.parseRegex)!;
-    if (version === null) {
-      throw Error(`Unable to find version in ${this.url}`);
-    }
-    return version;
-  }
-
-  regexp = /npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^\/\"\']+))?[^\'\"]/;
-
-  // deno-lint-ignore require-await
+export class FakeNpm extends Npm {
   async all(): Promise<string[]> {
-    return ["6.6.6", "6.7.0", "7.0.0"];
+    return await Promise.resolve(["6.6.6", "6.7.0", "7.0.0"]);
   }
 }
