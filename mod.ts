@@ -94,20 +94,21 @@ export class Udd {
     }
 
     // look for udd modifiers
-    const uddModifier = url.url.split("#").at(1)?.replaceAll(" ", "");
-    if (uddModifier) {
+    // udd modifiers takes precedence over other modifiers
+    const uddFragment = url.url.split("#").at(1)?.replaceAll(" ", "");
+    if (uddFragment) {
       try {
-        new semver.SemVer(uddModifier.slice(1));
+        new semver.SemVer(uddFragment.slice(1));
       } catch {
         return {
           initVersion,
           initUrl,
-          message: `invalid semver fragment: ${uddModifier}`,
+          message: `invalid semver fragment: ${uddFragment}`,
         };
       }
 
       newVersion = versions.find(function (version) {
-        return semver.satisfies(version, uddModifier);
+        return semver.satisfies(version, uddFragment);
       });
     }
 
