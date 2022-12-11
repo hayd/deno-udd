@@ -108,9 +108,7 @@ export class Udd {
         };
       }
 
-      newVersion = versions.find(function (version) {
-        return semver.satisfies(version, uddFragment);
-      });
+      newVersion = versions.find((version) => semver.satisfies(version, uddFragment));
     }
 
     if (!newVersion) {
