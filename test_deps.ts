@@ -38,3 +38,10 @@ export class FakeDenoLand extends DenoLand {
     return ["0.35.0", "0.34.0"];
   }
 }
+export class FakeDenoLand2 extends DenoLand {
+  // deno-lint-ignore require-await
+  async all(): Promise<string[]> {
+    return ["1.1.0", "1.0.2", "1.0.1", "1.0.0"];
+  }
+  regexp = /https?:\/\/fakeregistry.com\/[^\/\"\']*?\@[^\'\"]*/;
+}

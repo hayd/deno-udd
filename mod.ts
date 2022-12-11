@@ -1,7 +1,6 @@
-import { colors } from "./deps.ts";
 import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
-import { fragment, Semver, semver } from "./semver.ts";
+import * as semver from "https://deno.land/std@0.167.0/semver/mod.ts";
 import { lookup, REGISTRIES, RegistryCtor, RegistryUrl } from "./registry.ts";
 
 // FIXME we should catch ctrl-c etc. and write back the original deps.ts
@@ -79,64 +78,43 @@ export class Udd {
   ): Promise<UddResult> {
     const initUrl: string = url.url;
     const initVersion: string = url.version();
-    let newFragmentToken: string | undefined = undefined;
     await this.progress.log(`Looking for releases: ${url.url}`);
     const versions = await url.all();
 
-    // for now, let's pick the most recent!
-    let newVersion = versions[0];
-
-    // FIXME warn that the version modifier is moved to a fragment...
-    // if the version includes a modifier we move it to the fragment
-    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
-      newFragmentToken = initVersion[0];
-      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
+    let newVersion;
+    // look for npm modifiers
+    if (initVersion[0].match(/^[\~\^\=\<]/)) {
+      newVersion = versions.find((version) =>
+        semver.satisfies(version, initVersion)
+      );
+    } else {
+      newVersion = versions[0];
     }
 
-    try {
-      new Semver(url.version());
-    } catch (_) {
-      // The version string is a non-semver string like a branch name.
-      await this.progress.log(`Skip updating: ${url.url}`);
-      return { initUrl, initVersion };
-    }
-
-    // if we pass a fragment with semver
-    let filter: ((other: Semver) => boolean) | undefined = undefined;
-    try {
-      filter = fragment(url.url, url.version());
-    } catch (e) {
-      if (e instanceof SyntaxError) {
+    // look for udd modifiers
+    const uddModifier = url.url.split("#").at(1)?.replaceAll(" ", "");
+    if (uddModifier) {
+      try {
+        new semver.SemVer(uddModifier.slice(1));
+      } catch {
         return {
-          initUrl,
           initVersion,
-          success: false,
-          message: e.message,
-        };
-      } else {
-        throw e;
-      }
-    }
-
-    // potentially we can shortcut if fragment is #=${url.version()}...
-    if (filter !== undefined) {
-      const compatible: string[] = versions.map(semver).filter((x) =>
-        x !== undefined
-      ).map((x) => x!).filter(filter).map((x) => x.version);
-      if (compatible.length === 0) {
-        return {
           initUrl,
-          initVersion,
-          success: false,
-          message: "no compatible version found",
+          message: `invalid semver fragment: ${uddModifier}`,
         };
       }
-      newVersion = compatible[0];
+
+      newVersion = versions.find(function (version) {
+        return semver.satisfies(version, uddModifier);
+      });
     }
 
-    if (url.version() === newVersion && newFragmentToken === undefined) {
-      await this.progress.log(`Using latest: ${url.url}`);
-      return { initUrl, initVersion };
+    if (!newVersion) {
+      return {
+        initVersion,
+        initUrl,
+        message: "no compatible version found",
+      };
     }
 
     let failed = false;
@@ -146,13 +124,10 @@ export class Udd {
       const msg = failed ? "failed" : "successful";
       await this.progress.log(`Update ${msg}: ${url.url} -> ${newVersion}`);
     }
-    const maybeFragment = newFragmentToken === undefined
-      ? ""
-      : `#${newFragmentToken}`;
     return {
       initUrl,
       initVersion,
-      message: newVersion + colors.yellow(maybeFragment),
+      message: newVersion,
       success: !failed,
     };
   }
