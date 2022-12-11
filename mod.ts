@@ -95,6 +95,7 @@ export class Udd {
 
     // look for udd modifiers
     // udd modifiers takes precedence over other modifiers
+    // make sure to remove any space because semver predicate is space sensible
     const uddFragment = url.url.split("#").at(1)?.replaceAll(" ", "");
     if (uddFragment) {
       try {
