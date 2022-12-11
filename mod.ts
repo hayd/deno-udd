@@ -88,6 +88,8 @@ export class Udd {
         semver.satisfies(version, initVersion)
       );
     } else {
+      // use the latest version
+      // versions is sorted by newest
       newVersion = versions[0];
     }
 
