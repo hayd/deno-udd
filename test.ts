@@ -1,6 +1,12 @@
 import { udd, UddOptions, UddResult } from "./mod.ts";
 import { RegistryCtor } from "./registry.ts";
-import { assertEquals, FakeDenoLand, FakeRegistry } from "./test_deps.ts";
+import {
+  assert,
+  assertEquals,
+  FakeDenoLand,
+  FakeDenoLand2,
+  FakeRegistry,
+} from "./test_deps.ts";
 
 async function testUdd(
   before: string,
@@ -32,11 +38,11 @@ Deno.test("uddFakeregistry", async () => {
 });
 
 Deno.test("uddFakeregistryNotFound", async () => {
-  const contents = 'import "https://fakeregistry.com/foo@0.0.3/mod.ts#=";';
-  const expected = 'import "https://fakeregistry.com/foo@0.0.3/mod.ts#=";';
+  const contents = 'import "https://fakeregistry.com/foo@0.0.3/mod.ts#=0.0.3";';
+  const expected = 'import "https://fakeregistry.com/foo@0.0.3/mod.ts#=0.0.3";';
   const results = await testUdd(contents, expected);
   assertEquals(1, results.length);
-  assertEquals(false, results[0].success);
+  assert(!results[0].success);
   assertEquals("no compatible version found", results[0].message);
 });
 
@@ -79,8 +85,8 @@ Deno.test("uddFakeregistryInvalidFragmentSemver", async () => {
     'import "https://fakeregistry.com/foo@0.0.1/mod.ts# < 0.1.b";';
   const results = await testUdd(contents, expected);
   assertEquals(results.length, 1);
-  assertEquals(results[0].success, false);
-  assertEquals(results[0].message, "invalid semver version: 0.1.b");
+  assert(!results[0].success);
+  assertEquals(results[0].message, "invalid semver fragment: <0.1.b");
 });
 
 Deno.test("uddFakeregistryInvalidFragmentFoo", async () => {
@@ -88,7 +94,7 @@ Deno.test("uddFakeregistryInvalidFragmentFoo", async () => {
   const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#foo";';
   const results = await testUdd(contents, expected);
   assertEquals(results.length, 1);
-  assertEquals(results[0].success, false);
+  assert(!results[0].success);
   assertEquals(results[0].message, "invalid semver fragment: foo");
 });
 
@@ -99,15 +105,15 @@ Deno.test("uddFakeregistryEq", async () => {
 });
 
 Deno.test("uddFakeregistryTilde", async () => {
-  const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#~";';
-  const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~";';
-  await testUdd(contents, expected);
+  const contents = 'import "https://fakeregistry.com/foo@1.0.0/mod.ts#~1.0.0";';
+  const expected = 'import "https://fakeregistry.com/foo@1.0.2/mod.ts#~1.0.0";';
+  await testUdd(contents, expected, [FakeDenoLand2]);
 });
 
 Deno.test("uddFakeregistryCaret", async () => {
-  const contents = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#^";';
-  const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#^";';
-  await testUdd(contents, expected);
+  const contents = 'import "https://fakeregistry.com/foo@1.0.0/mod.ts#^1.0.0";';
+  const expected = 'import "https://fakeregistry.com/foo@1.1.0/mod.ts#^1.0.0";';
+  await testUdd(contents, expected, [FakeDenoLand2]);
 });
 
 Deno.test("uddFakeMultiple", async () => {
@@ -133,18 +139,6 @@ import { bar } from "https://fakeregistry.com/foo@0.0.1/bar.ts#=";
   // (it corresponds to the order passed registries)
   // FIXME make less fragile by improving search.ts to provide urls in order
   assertEquals([true, undefined, true, true], results.map((x) => x.success));
-});
-
-Deno.test("uddFakeregistryFragmentMove", async () => {
-  const contents = 'import "https://fakeregistry.com/foo@~0.0.1/mod.ts";';
-  const expected = 'import "https://fakeregistry.com/foo@0.0.2/mod.ts#~";';
-  await testUdd(contents, expected);
-});
-
-Deno.test("uddFakeregistryFragmentMoveEq", async () => {
-  const contents = 'import "https://fakeregistry.com/foo@=0.0.1/mod.ts";';
-  const expected = 'import "https://fakeregistry.com/foo@0.0.1/mod.ts#=";';
-  await testUdd(contents, expected);
 });
 
 Deno.test("uddGitHubRawBranchName", async () => {
