@@ -36,11 +36,9 @@ async function getRemoteDependencies(root: string) {
         } else {
           // This is what we're looking for
           // remote dependencies inside of a local file
-          if (result[specifier] !== undefined) {
-            result[specifier].push(code);
-          } else {
-            result[specifier] = [code];
-          }
+          result[specifier] = result[specifier]
+            ? [...result[specifier], code]
+            : [code];
         }
       }
     }
