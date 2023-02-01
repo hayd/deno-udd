@@ -42,10 +42,11 @@ async function getRemoteDependencies(root: string) {
         }
       }
     }
+
     seen.add(specifier);
   }
-  getDeps(await createGraph(root), root);
 
+  getDeps(await createGraph(root), root);
   return result;
 }
 export async function importUrls(
