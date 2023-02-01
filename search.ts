@@ -1,51 +1,63 @@
-interface DenoInfo {
-  roots: string[];
-  modules: DenoModule[];
-}
-interface DenoModule {
-  specifier: string;
-  dependencies: DenoDependency[];
-}
-interface DenoDependency {
-  code: {
-    specifier: string;
-    span: {
-      start: { line: number; character: number };
-      end: { line: number; character: number };
-    };
-  };
-}
+import {
+  createGraph,
+  ModuleGraph,
+} from "https://deno.land/x/deno_graph@0.40.0/mod.ts";
+import { ResolvedDependency } from "https://deno.land/x/deno_graph@0.40.0/lib/types.d.ts";
 
-async function getDenoInfo(targetFile: string) {
-  const p = Deno.run({
-    cmd: ["deno", "info", "--json", targetFile],
-    stdout: "piped",
-  });
-  const denoInfo: DenoInfo = await p.output().then((o) =>
-    JSON.parse(new TextDecoder().decode(o))
-  );
-  p.close();
-  return denoInfo;
-}
+async function getRemoteDependencies(root: string) {
+  const seen = new Set<string>();
+  const result: Record<string, ResolvedDependency[]> = {};
 
+  function getDeps(
+    graph: ModuleGraph,
+    specifier: string,
+  ): string[] | undefined {
+    if (new URL(specifier).protocol !== "file:") {
+      // It makes things easier to reason about
+      throw "Searching for dependencies inside of a remote file is not supported";
+    }
+
+    if (seen.has(specifier)) {
+      // It's already checked.
+      return undefined;
+    }
+
+    const { dependencies } = graph.get(specifier)!.toJSON();
+    if (dependencies) {
+      for (const { code, type } of dependencies) {
+        if (code?.specifier) {
+          if (new URL(code.specifier).protocol === "file:") {
+            // this is a local dependency, so we need to check if it has remote dependencies inside it
+            getDeps(
+              graph,
+              code?.specifier ?? type?.specifier!,
+            );
+          } else {
+            // This is what we're looking for
+            // remote dependencies inside of a local file
+            if (result[specifier] !== undefined) {
+              result[specifier].push(code);
+            } else {
+              result[specifier] = [code];
+            }
+          }
+        }
+      }
+    }
+    seen.add(specifier);
+  }
+  getDeps(await createGraph(root), root);
+
+  return result;
+}
 export async function importUrls(
   targetFile: string,
-): Promise<string[]> {
-  const denoInfo = await getDenoInfo(targetFile);
+) {
+  const root = `${new URL(targetFile, import.meta.url)}`;
+  const remoteDeps = await getRemoteDependencies(root);
 
-  const roots = denoInfo.roots;
-  // NOTE: When can we have more then one root ?
-  const root = roots[0];
-
-  const targetModule = denoInfo.modules.find((m) => m.specifier === root);
-  if (!targetModule) return [];
-
-  const remoteDependencies = targetModule.dependencies.filter((d) => {
-    const protocol = new URL(d.code.specifier).protocol;
-    return protocol === "https:" || protocol === "npm:";
-  });
-
-  // NOTE: DenoDependency has the exact location of the import (span field)
-  // Can we use that information for replace ? should we ?
-  return remoteDependencies.map((rd) => decodeURI(rd.code.specifier));
+  return remoteDeps[root]
+    .map((dep) => dep.specifier)
+    .map((specifier) => specifier ? decodeURI(specifier) : undefined)
+    .filter((s) => s) as string[]; // ignore empty specifiers
 }
