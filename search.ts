@@ -58,6 +58,8 @@ export async function importUrls(
 
   return remoteDeps[root]
     .map((dep) => dep.specifier)
+    // Note: we're throwing span info out
+    // In the future we can use it for url replacement
     .map((specifier) => specifier ? decodeURI(specifier) : undefined)
     .filter((s) => s) as string[]; // ignore empty specifiers
 }
