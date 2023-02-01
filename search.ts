@@ -11,7 +11,7 @@ async function getRemoteDependencies(root: string) {
   function getDeps(
     graph: ModuleGraph,
     specifier: string,
-  ): string[] | undefined {
+  ) {
     if (new URL(specifier).protocol !== "file:") {
       // It makes things easier to reason about
       throw "Searching for dependencies inside of a remote file is not supported";
