@@ -57,9 +57,8 @@ export class Udd {
   }
 
   async run(): Promise<UddResult[]> {
-    const content: string = await this.content();
+    const urls = await importUrls(this.filename);
 
-    const urls: string[] = importUrls(content, this.registries);
     this.progress.n = urls.length;
 
     // from a url we need to extract the current version

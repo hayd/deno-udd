@@ -128,11 +128,12 @@ import { bar } from "https://fakeregistry.com/foo@0.0.1/bar.ts#=";
     expected,
     [FakeRegistry, FakeDenoLand],
   );
+
   assertEquals(4, results.length);
   // the ordering is a little weird...
   // (it corresponds to the order passed registries)
   // FIXME make less fragile by improving search.ts to provide urls in order
-  assertEquals([true, undefined, true, true], results.map((x) => x.success));
+  assertEquals([true, true, undefined, true], results.map((x) => x.success));
 });
 
 Deno.test("uddFakeregistryFragmentMove", async () => {
