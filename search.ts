@@ -25,21 +25,21 @@ async function getRemoteDependencies(root: string) {
     const { dependencies } = graph.get(specifier)!.toJSON();
     if (dependencies) {
       for (const { code, type } of dependencies) {
-        if (code?.specifier) {
-          if (new URL(code.specifier).protocol === "file:") {
-            // this is a local dependency, so we need to check if it has remote dependencies inside it
-            getDeps(
-              graph,
-              code?.specifier ?? type?.specifier!,
-            );
+        if (code?.specifier === undefined) continue;
+
+        if (new URL(code.specifier).protocol === "file:") {
+          // this is a local dependency, so we need to check if it has remote dependencies inside of it
+          getDeps(
+            graph,
+            code?.specifier ?? type?.specifier!,
+          );
+        } else {
+          // This is what we're looking for
+          // remote dependencies inside of a local file
+          if (result[specifier] !== undefined) {
+            result[specifier].push(code);
           } else {
-            // This is what we're looking for
-            // remote dependencies inside of a local file
-            if (result[specifier] !== undefined) {
-              result[specifier].push(code);
-            } else {
-              result[specifier] = [code];
-            }
+            result[specifier] = [code];
           }
         }
       }
