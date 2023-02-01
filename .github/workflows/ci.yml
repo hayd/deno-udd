@@ -14,4 +14,4 @@ jobs:
       - name: Run lint
         run: deno lint
       - name: Run test
-        run: deno test --allow-read --allow-write --allow-run=deno
+        run: deno test --allow-read --allow-write --allow-net
