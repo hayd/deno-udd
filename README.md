@@ -44,6 +44,13 @@ To update all the ts files in your directory:
 udd *.ts
 ```
 
+You can technically update any type of file, like import maps:
+
+```sh
+udd import_map.json
+udd deno.jsonc
+```
+
 To ensure that `deno test` is successful when updating each dependency:
 
 ```sh
