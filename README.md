@@ -21,7 +21,7 @@ are _purely_ a convenience for the maintainer, and do not affect users.
 ## Installation
 
 Use deno
-[`install`](https://deno.land/std/manual.md#installing-executable-scripts) to
+[`install`](https://deno.land/manual/tools/script_installer) to
 install or update udd:
 
 ```sh
