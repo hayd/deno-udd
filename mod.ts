@@ -8,7 +8,7 @@ import { lookup, REGISTRIES, RegistryCtor, RegistryUrl } from "./registry.ts";
 
 export async function udd(
   filename: string,
-  options: UddOptions
+  options: UddOptions,
 ): Promise<UddResult[]> {
   const u = new Udd(filename, options);
   return await u.run();
@@ -149,8 +149,9 @@ export class Udd {
       const msg = failed ? "failed" : "successful";
       await this.progress.log(`Update ${msg}: ${url.url} -> ${newVersion}`);
     }
-    const maybeFragment =
-      newFragmentToken === undefined ? "" : `#${newFragmentToken}`;
+    const maybeFragment = newFragmentToken === undefined
+      ? ""
+      : `#${newFragmentToken}`;
     return {
       initUrl,
       initVersion,
@@ -163,7 +164,7 @@ export class Udd {
   async maybeReplace(
     url: RegistryUrl,
     newVersion: string,
-    initUrl: string
+    initUrl: string,
   ): Promise<boolean> {
     const newUrl = url.at(newVersion).url;
     await this.replace(initUrl, newUrl);
