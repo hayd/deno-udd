@@ -11,10 +11,10 @@ async function testUdd(
   try {
     const encoder = new TextEncoder();
     await Deno.writeFile(fn, encoder.encode(before));
-    const results: UddResult[] = await udd(
-      fn,
-      { _registries: registries, quiet: true } as UddOptions,
-    );
+    const results: UddResult[] = await udd(fn, {
+      _registries: registries,
+      quiet: true,
+    } as UddOptions);
 
     const decoder = new TextDecoder();
     const altered = decoder.decode(await Deno.readFile(fn));
@@ -123,16 +123,18 @@ import "https://deno.land/std@0.35.0/foo.ts";
 import { foo } from "https://fakeregistry.com/foo@0.0.2/mod.ts";
 import { bar } from "https://fakeregistry.com/foo@0.0.1/bar.ts#=";
 `;
-  const results = await testUdd(
-    contents,
-    expected,
-    [FakeRegistry, FakeDenoLand],
-  );
+  const results = await testUdd(contents, expected, [
+    FakeRegistry,
+    FakeDenoLand,
+  ]);
   assertEquals(4, results.length);
   // the ordering is a little weird...
   // (it corresponds to the order passed registries)
   // FIXME make less fragile by improving search.ts to provide urls in order
-  assertEquals([true, undefined, true, true], results.map((x) => x.success));
+  assertEquals(
+    [true, true, undefined, true],
+    results.map((x) => x.success),
+  );
 });
 
 Deno.test("uddFakeregistryFragmentMove", async () => {

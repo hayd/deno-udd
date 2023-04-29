@@ -1,7 +1,8 @@
 export type RegistryCtor = new (url: string) => RegistryUrl;
-export function lookup(url: string, registries: RegistryCtor[]):
-  | RegistryUrl
-  | undefined {
+export function lookup(
+  url: string,
+  registries: RegistryCtor[],
+): RegistryUrl | undefined {
   for (const R of registries) {
     const u = new R(url);
     if (u.regexp.test(url)) {
@@ -82,7 +83,9 @@ async function githubReleases(
     while (lastVersion !== versions[versions.length - 1] && i < 5) {
       i++;
       lastVersion = versions[versions.length - 1];
-      versions.push(...await githubDownloadReleases(owner, repo, lastVersion));
+      versions.push(
+        ...(await githubDownloadReleases(owner, repo, lastVersion)),
+      );
     }
   }
   cache.set(cacheKey, versions);
@@ -117,9 +120,9 @@ export class DenoLand implements RegistryUrl {
     }
 
     try {
-      const json: VersionsJson =
-        await (await fetch(`https://cdn.deno.land/${name}/meta/versions.json`))
-          .json();
+      const json: VersionsJson = await (
+        await fetch(`https://cdn.deno.land/${name}/meta/versions.json`)
+      ).json();
       if (!json.versions) {
         throw new Error(`versions.json for ${name} has incorrect format`);
       }
@@ -167,9 +170,10 @@ export class Npm implements RegistryUrl {
     }
 
     try {
-      const json: VersionsJson =
-        await (await fetch(`https://registry.npmjs.org/${name}`))
-          .json();
+      const json: VersionsJson = await fetch(
+        `https://registry.npmjs.org/${name}`,
+      ).then((r) => r.json());
+
       if (!json.versions) {
         throw new Error(`versions.json for ${name} has incorrect format`);
       }
@@ -634,9 +638,7 @@ async function gitlabDownloadReleases(
 
   const text = await (await fetch(url)).text();
   return [
-    ...text.matchAll(
-      /\<id\>https\:\/\/gitlab.com.+\/-\/tags\/(.+?)\<\/id\>/g,
-    ),
+    ...text.matchAll(/\<id\>https\:\/\/gitlab.com.+\/-\/tags\/(.+?)\<\/id\>/g),
   ].map((x) => x[1]);
 }
 
@@ -661,7 +663,7 @@ async function gitlabReleases(
     while (lastVersion !== versions[versions.length - 1] && i <= 3) {
       i++;
       lastVersion = versions[versions.length - 1];
-      versions.push(...await gitlabDownloadReleases(owner, repo, i));
+      versions.push(...(await gitlabDownloadReleases(owner, repo, i)));
     }
   }
   cache.set(cacheKey, versions);
@@ -713,8 +715,9 @@ async function nestlandReleases(
   }
 
   const url = `https://x.nest.land/api/package/${repo}`;
-  const { packageUploadNames }: NestLandResponse = await (await fetch(url))
-    .json();
+  const { packageUploadNames }: NestLandResponse = await (
+    await fetch(url)
+  ).json();
 
   if (!packageUploadNames) {
     return [];
