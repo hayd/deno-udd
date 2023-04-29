@@ -1,7 +1,8 @@
 export type RegistryCtor = new (url: string) => RegistryUrl;
-export function lookup(url: string, registries: RegistryCtor[]):
-  | RegistryUrl
-  | undefined {
+export function lookup(
+  url: string,
+  registries: RegistryCtor[]
+): RegistryUrl | undefined {
   for (const R of registries) {
     const u = new R(url);
     if (u.regexp.test(url)) {
@@ -45,7 +46,7 @@ export function defaultName(that: RegistryUrl): string {
 async function githubDownloadReleases(
   owner: string,
   repo: string,
-  lastVersion: string | undefined = undefined,
+  lastVersion: string | undefined = undefined
 ): Promise<string[]> {
   let url = `https://github.com/${owner}/${repo}/releases.atom`;
   if (lastVersion) {
@@ -57,7 +58,7 @@ async function githubDownloadReleases(
   const text = await page.text();
   return [
     ...text.matchAll(
-      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g,
+      /\<id\>tag\:github\.com\,2008\:Repository\/\d+\/(.*?)\<\/id\>/g
     ),
   ].map((x) => x[1]);
 }
@@ -68,7 +69,7 @@ export const GR_CACHE: Map<string, string[]> = new Map<string, string[]>();
 async function githubReleases(
   owner: string,
   repo: string,
-  cache: Map<string, string[]> = GR_CACHE,
+  cache: Map<string, string[]> = GR_CACHE
 ): Promise<string[]> {
   const cacheKey = `${owner}/${repo}`;
   if (cache.has(cacheKey)) {
@@ -82,7 +83,9 @@ async function githubReleases(
     while (lastVersion !== versions[versions.length - 1] && i < 5) {
       i++;
       lastVersion = versions[versions.length - 1];
-      versions.push(...await githubDownloadReleases(owner, repo, lastVersion));
+      versions.push(
+        ...(await githubDownloadReleases(owner, repo, lastVersion))
+      );
     }
   }
   cache.set(cacheKey, versions);
@@ -104,7 +107,7 @@ export class DenoLand implements RegistryUrl {
 
   name(): string {
     const [, stdGroup, xGroup] = this.url.match(
-      /deno\.land\/(?:(std)|x\/([^/@]*))/,
+      /deno\.land\/(?:(std)|x\/([^/@]*))/
     )!;
 
     return stdGroup ?? xGroup;
@@ -117,9 +120,9 @@ export class DenoLand implements RegistryUrl {
     }
 
     try {
-      const json: VersionsJson =
-        await (await fetch(`https://cdn.deno.land/${name}/meta/versions.json`))
-          .json();
+      const json: VersionsJson = await (
+        await fetch(`https://cdn.deno.land/${name}/meta/versions.json`)
+      ).json();
       if (!json.versions) {
         throw new Error(`versions.json for ${name} has incorrect format`);
       }
@@ -167,9 +170,10 @@ export class Npm implements RegistryUrl {
     }
 
     try {
-      const json: VersionsJson =
-        await (await fetch(`https://registry.npmjs.org/${name}`))
-          .json();
+      const json: VersionsJson = await fetch(
+        `https://registry.npmjs.org/${name}`
+      ).then((r) => r.json());
+
       if (!json.versions) {
         throw new Error(`versions.json for ${name} has incorrect format`);
       }
@@ -627,16 +631,13 @@ export class JsDelivr implements RegistryUrl {
 async function gitlabDownloadReleases(
   owner: string,
   repo: string,
-  page: number,
+  page: number
 ): Promise<string[]> {
-  const url =
-    `https://gitlab.com/${owner}/${repo}/-/tags?format=atom&page=${page}`;
+  const url = `https://gitlab.com/${owner}/${repo}/-/tags?format=atom&page=${page}`;
 
   const text = await (await fetch(url)).text();
   return [
-    ...text.matchAll(
-      /\<id\>https\:\/\/gitlab.com.+\/-\/tags\/(.+?)\<\/id\>/g,
-    ),
+    ...text.matchAll(/\<id\>https\:\/\/gitlab.com.+\/-\/tags\/(.+?)\<\/id\>/g),
   ].map((x) => x[1]);
 }
 
@@ -646,7 +647,7 @@ export const GL_CACHE: Map<string, string[]> = new Map<string, string[]>();
 async function gitlabReleases(
   owner: string,
   repo: string,
-  cache: Map<string, string[]> = GL_CACHE,
+  cache: Map<string, string[]> = GL_CACHE
 ): Promise<string[]> {
   const cacheKey = `${owner}/${repo}`;
   if (cache.has(cacheKey)) {
@@ -661,7 +662,7 @@ async function gitlabReleases(
     while (lastVersion !== versions[versions.length - 1] && i <= 3) {
       i++;
       lastVersion = versions[versions.length - 1];
-      versions.push(...await gitlabDownloadReleases(owner, repo, i));
+      versions.push(...(await gitlabDownloadReleases(owner, repo, i)));
     }
   }
   cache.set(cacheKey, versions);
@@ -706,15 +707,16 @@ interface NestLandResponse {
 const NL_CACHE: Map<string, string[]> = new Map<string, string[]>();
 async function nestlandReleases(
   repo: string,
-  cache: Map<string, string[]> = NL_CACHE,
+  cache: Map<string, string[]> = NL_CACHE
 ): Promise<string[]> {
   if (cache.has(repo)) {
     return cache.get(repo)!;
   }
 
   const url = `https://x.nest.land/api/package/${repo}`;
-  const { packageUploadNames }: NestLandResponse = await (await fetch(url))
-    .json();
+  const { packageUploadNames }: NestLandResponse = await (
+    await fetch(url)
+  ).json();
 
   if (!packageUploadNames) {
     return [];

@@ -8,7 +8,7 @@ import { lookup, REGISTRIES, RegistryCtor, RegistryUrl } from "./registry.ts";
 
 export async function udd(
   filename: string,
-  options: UddOptions,
+  options: UddOptions
 ): Promise<UddResult[]> {
   const u = new Udd(filename, options);
   return await u.run();
@@ -39,10 +39,7 @@ export class Udd {
   private progress: Progress;
   private registries: RegistryCtor[];
 
-  constructor(
-    filename: string,
-    options: UddOptions,
-  ) {
+  constructor(filename: string, options: UddOptions) {
     this.filename = filename;
     this.options = options;
     this.registries = options._registries || REGISTRIES;
@@ -57,9 +54,8 @@ export class Udd {
   }
 
   async run(): Promise<UddResult[]> {
-    const content: string = await this.content();
+    const urls = await importUrls(this.filename);
 
-    const urls: string[] = importUrls(content, this.registries);
     this.progress.n = urls.length;
 
     // from a url we need to extract the current version
@@ -74,11 +70,11 @@ export class Udd {
     return results;
   }
 
-  async update(
-    url: RegistryUrl,
-  ): Promise<UddResult> {
+  async update(url: RegistryUrl): Promise<UddResult> {
     const initUrl: string = url.url;
     const initVersion: string = url.version();
+
+    await this.progress.log(`initVersion: ${initVersion}`);
     let newFragmentToken: string | undefined = undefined;
     await this.progress.log(`Looking for releases: ${url.url}`);
     const versions = await url.all();
@@ -88,7 +84,11 @@ export class Udd {
 
     // FIXME warn that the version modifier is moved to a fragment...
     // if the version includes a modifier we move it to the fragment
-    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
+    if (
+      initVersion &&
+      initVersion[0].match(/^[\~\^\=\<]/) &&
+      !url.url.includes("#")
+    ) {
       newFragmentToken = initVersion[0];
       url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
     }
@@ -120,9 +120,12 @@ export class Udd {
 
     // potentially we can shortcut if fragment is #=${url.version()}...
     if (filter !== undefined) {
-      const compatible: string[] = versions.map(semver).filter((x) =>
-        x !== undefined
-      ).map((x) => x!).filter(filter).map((x) => x.version);
+      const compatible: string[] = versions
+        .map(semver)
+        .filter((x) => x !== undefined)
+        .map((x) => x!)
+        .filter(filter)
+        .map((x) => x.version);
       if (compatible.length === 0) {
         return {
           initUrl,
@@ -146,9 +149,8 @@ export class Udd {
       const msg = failed ? "failed" : "successful";
       await this.progress.log(`Update ${msg}: ${url.url} -> ${newVersion}`);
     }
-    const maybeFragment = newFragmentToken === undefined
-      ? ""
-      : `#${newFragmentToken}`;
+    const maybeFragment =
+      newFragmentToken === undefined ? "" : `#${newFragmentToken}`;
     return {
       initUrl,
       initVersion,
@@ -161,12 +163,14 @@ export class Udd {
   async maybeReplace(
     url: RegistryUrl,
     newVersion: string,
-    initUrl: string,
+    initUrl: string
   ): Promise<boolean> {
     const newUrl = url.at(newVersion).url;
     await this.replace(initUrl, newUrl);
 
-    const failed = await this.test().then((_) => false).catch((_) => true);
+    const failed = await this.test()
+      .then((_) => false)
+      .catch((_) => true);
     if (failed) {
       await this.replace(newUrl, initUrl);
     }
