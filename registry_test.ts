@@ -180,6 +180,14 @@ Deno.test("registryNpm", () => {
   assertEquals(vAt.url, "npm:foo@0.2.0/foo");
 });
 
+Deno.test("registryNpmUpgradeFragment", () => {
+  const url = "npm:@octokit/rest@19.0.0#~";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  assertEquals(v.version(), "19.0.0");
+});
+
 Deno.test("registryNpmOrg", () => {
   const url = "npm:@foo/foo@0.1.0/foo";
   const v = lookup(url, REGISTRIES);
