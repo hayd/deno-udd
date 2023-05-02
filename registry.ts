@@ -148,7 +148,7 @@ export class DenoLand implements RegistryUrl {
 const NPM_CACHE: Map<string, string[]> = new Map<string, string[]>();
 export class Npm implements RegistryUrl {
   url: string;
-  parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^/]+))?(.*)/;
+  parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^#/]+))?(.*)/;
 
   constructor(url: string) {
     this.url = url;
