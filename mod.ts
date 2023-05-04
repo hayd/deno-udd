@@ -1,4 +1,4 @@
-import { colors } from "./deps.ts";
+import { colors, semverSatisfies, getPrereleaseVersion } from "./deps.ts";
 import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
 import { fragment, Semver, semver } from "./semver.ts";
@@ -79,19 +79,10 @@ export class Udd {
   ): Promise<UddResult> {
     const initUrl: string = url.url;
     const initVersion: string = url.version();
+    const isInitVersionPrerelease: boolean = getPrereleaseVersion(initVersion) != null
     let newFragmentToken: string | undefined = undefined;
     await this.progress.log(`Looking for releases: ${url.url}`);
-    const versions = await url.all();
-
-    // for now, let's pick the most recent!
-    let newVersion = versions[0];
-
-    // FIXME warn that the version modifier is moved to a fragment...
-    // if the version includes a modifier we move it to the fragment
-    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
-      newFragmentToken = initVersion[0];
-      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
-    }
+    let versions = await url.all();    
 
     try {
       new Semver(url.version());
@@ -99,6 +90,21 @@ export class Udd {
       // The version string is a non-semver string like a branch name.
       await this.progress.log(`Skip updating: ${url.url}`);
       return { initUrl, initVersion };
+    }
+
+    if (!isInitVersionPrerelease) {
+      // if the version specified in source code file is not a pre-release version, we want to assume they want to exclude pre-releases from automatic update. 
+      // Therefore, let's filter out all pre-release versions. 
+      versions = versions.filter(version => getPrereleaseVersion(version) == null)
+    }
+
+    let newVersion = versions[0];
+
+    // FIXME warn that the version modifier is moved to a fragment...
+    // if the version includes a modifier we move it to the fragment
+    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
+      newFragmentToken = initVersion[0];
+      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
     }
 
     // if we pass a fragment with semver
