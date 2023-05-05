@@ -1,4 +1,4 @@
-import { colors, semverSatisfies, getPrereleaseVersion } from "./deps.ts";
+import { colors, getPrereleaseVersion } from "./deps.ts";
 import { Progress, SilentProgress } from "./progress.ts";
 import { importUrls } from "./search.ts";
 import { fragment, Semver, semver } from "./semver.ts";
@@ -78,11 +78,17 @@ export class Udd {
     url: RegistryUrl,
   ): Promise<UddResult> {
     const initUrl: string = url.url;
-    const initVersion: string = url.version();
-    const isInitVersionPrerelease: boolean = getPrereleaseVersion(initVersion) != null
+    const initVersion: string = url.version();    
     let newFragmentToken: string | undefined = undefined;
     await this.progress.log(`Looking for releases: ${url.url}`);
-    let versions = await url.all();    
+    let versions = await url.all();            
+
+    // FIXME warn that the version modifier is moved to a fragment...
+    // if the version includes a modifier we move it to the fragment
+    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
+      newFragmentToken = initVersion[0];
+      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
+    }
 
     try {
       new Semver(url.version());
@@ -92,6 +98,7 @@ export class Udd {
       return { initUrl, initVersion };
     }
 
+    const isInitVersionPrerelease: boolean = getPrereleaseVersion(initVersion) != null
     if (!isInitVersionPrerelease) {
       // if the version specified in source code file is not a pre-release version, we want to assume they want to exclude pre-releases from automatic update. 
       // Therefore, let's filter out all pre-release versions. 
@@ -99,13 +106,6 @@ export class Udd {
     }
 
     let newVersion = versions[0];
-
-    // FIXME warn that the version modifier is moved to a fragment...
-    // if the version includes a modifier we move it to the fragment
-    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
-      newFragmentToken = initVersion[0];
-      url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
-    }
 
     // if we pass a fragment with semver
     let filter: ((other: Semver) => boolean) | undefined = undefined;
