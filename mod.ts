@@ -87,12 +87,12 @@ export class Udd {
     let newVersion = versions[0];
 
     // FIXME warn that the version modifier is moved to a fragment...
-    // if the version includes a modifier we move it to the fragment
-    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {
+    // if the version includes a modifier we move it to the fragment    
+    if (initVersion[0].match(/^[\~\^\=\<]/) && !url.url.includes("#")) {      
       newFragmentToken = initVersion[0];
       url.url = `${url.at(initVersion.slice(1)).url}#${newFragmentToken}`;
-    }
-
+    }  
+    
     try {
       new Semver(url.version());
     } catch (_) {
@@ -132,6 +132,11 @@ export class Udd {
         };
       }
       newVersion = compatible[0];
+    }
+
+    // Put the version token back where it was at the prefix since we moved it to fragment 
+    if (newFragmentToken != undefined) {
+      newVersion = `${newFragmentToken}${newVersion}`
     }
 
     if (url.version() === newVersion && newFragmentToken === undefined) {

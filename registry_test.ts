@@ -181,11 +181,13 @@ Deno.test("registryNpm", () => {
 });
 
 Deno.test("registryNpmUpgradeFragment", () => {
-  const url = "npm:@octokit/rest@19.0.0#~";
+  const url = "npm:foo@0.1.0#~";
   const v = lookup(url, REGISTRIES);
   assert(v !== undefined);
 
-  assertEquals(v.version(), "19.0.0");
+  assertEquals(v.version(), "0.1.0");
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "npm:foo@0.2.0");  
 });
 
 Deno.test("registryNpmOrg", () => {
@@ -193,6 +195,16 @@ Deno.test("registryNpmOrg", () => {
   const v = lookup(url, REGISTRIES);
   assert(v !== undefined);
 
+  const vAt = v.at("0.2.0");
+  assertEquals(vAt.url, "npm:@foo/foo@0.2.0/foo");
+});
+
+Deno.test("registryNpmOrgFragment", () => {
+  const url = "npm:@foo/foo@0.1.0/foo#~";
+  const v = lookup(url, REGISTRIES);
+  assert(v !== undefined);
+
+  assertEquals(v.version(), "0.1.0");
   const vAt = v.at("0.2.0");
   assertEquals(vAt.url, "npm:@foo/foo@0.2.0/foo");
 });

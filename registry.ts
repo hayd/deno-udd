@@ -42,6 +42,16 @@ export function defaultName(that: RegistryUrl): string {
   return n[1];
 }
 
+// Removes string all the way up to '#' and drops the rest. 
+// given 0.0.0#~, get 0.0.0
+// given /foo#~, get /foo
+export function removeFragment(input: string): string {
+  if (!input) { return "" }
+
+  const [inputWithoutFragment, _] = input.match(/[^#]*/)! // remove fragment #~ suffix if it exists. 
+  return inputWithoutFragment
+}
+
 async function githubDownloadReleases(
   owner: string,
   repo: string,
@@ -148,7 +158,7 @@ export class DenoLand implements RegistryUrl {
 const NPM_CACHE: Map<string, string[]> = new Map<string, string[]>();
 export class Npm implements RegistryUrl {
   url: string;
-  parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^#/]+))?(.*)/;
+  parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^/]+))?(.*)/;
 
   constructor(url: string) {
     this.url = url;
@@ -186,7 +196,7 @@ export class Npm implements RegistryUrl {
 
   at(version: string): RegistryUrl {
     const [, name, _, files] = this.url.match(this.parseRegex)!;
-    const url = `npm:${name}@${version}${files}`;
+    const url = `npm:${name}@${version}${removeFragment(files)}`;
     return new Npm(url);
   }
 
@@ -195,7 +205,7 @@ export class Npm implements RegistryUrl {
     if (version === null) {
       throw Error(`Unable to find version in ${this.url}`);
     }
-    return version;
+    return removeFragment(version);
   }
 
   regexp = /npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^\/\"\']+))?[^\'\"]/;
