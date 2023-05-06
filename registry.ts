@@ -148,7 +148,7 @@ export class DenoLand implements RegistryUrl {
 const NPM_CACHE: Map<string, string[]> = new Map<string, string[]>();
 export class Npm implements RegistryUrl {
   url: string;
-  parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^#/]+))?(.*)/;
+  parseRegex = /^npm:(\@[^/]+\/[^@/]+|[^@/]+)(?:\@([^/]+))?(.*)/;
 
   constructor(url: string) {
     this.url = url;
@@ -191,7 +191,8 @@ export class Npm implements RegistryUrl {
   }
 
   version(): string {
-    const [, _, version] = this.url.match(this.parseRegex)!;
+    const [, _, versionWithFragmentSuffix] = this.url.match(this.parseRegex)!;
+    const [, version] = versionWithFragmentSuffix.match(/([^#]+)/)! // remove fragment #~ suffix if it exists. 
     if (version === null) {
       throw Error(`Unable to find version in ${this.url}`);
     }
